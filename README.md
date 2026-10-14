@@ -4,7 +4,11 @@
 
 ## 完整套件
 
-最新版：[english-essay-feedback-v2.zip](english-essay-feedback-v2.zip)（2026-10-14）。包含跨 agent JSON 資料規格、固定 PDF / Excel 模板、渲染器、虛構範例與測試。解壓縮後先讀套件內的 README.md。需要 Python、requirements.txt 中的套件及合法可用的中文字型／手寫英文字型；不需要 chezmoi。
+目前最新版：[english-essay-feedback-v3.zip](english-essay-feedback-v3.zip)（2026-10-14）。第一頁取消短評、完整版英中評語集中第二頁；必要修正保留學生原用字，可選升級不算錯誤；加入caret插字、刪除／替換定位及黑白列印辨識規格。所有作文（包括自編題與舊題）統一使用最新大考中心英文學測四項各5分規準，記錄官方來源與查核日期。套件資料版本升為3.0，詳見內附README。
+
+完成驗證的通用skill更新持續備份於本私有儲存庫，保留舊版；學生原稿、身份與成績不隨套件上傳。下方v2、v1為歷史版本。
+
+歷史版本：[english-essay-feedback-v2.zip](english-essay-feedback-v2.zip)（2026-10-14）。包含跨 agent JSON 資料規格、固定 PDF / Excel 模板、渲染器、虛構範例與測試。解壓縮後先讀套件內的 README.md。需要 Python、requirements.txt 中的套件及合法可用的中文字型／手寫英文字型；不需要 chezmoi。
 
 v2 已測試短文、840字120句長文、全班前兩頁合併、紅筆原稿註記與 Excel 公式更新；尚未在其他 agent 或 macOS / Linux 實測。長文完整保留、詳解延伸，第一頁容量不足時標示節錄；短文以個別補寫任務引導，不代寫學生原稿。字數扣分以當次官方規準為準。原始版本保留如下。
 
@@ -17,7 +21,7 @@ Codex 個人安裝位置為 `~/.codex/skills/english-essay-feedback/`；安裝�
 ## 批改規格
 
 - 原稿上方紅色手寫風批改，Sp/G/W/P 黑底白字標籤。
-- 第一頁成績表、字數核算與英中短評。
+- 第一頁成績表、字數核算與必要修正；完整版英中評語集中第二頁。
 - 第二頁評分依據表、完整英中評語、三項個別化修訂任務與作答空間、量化與質化反思。
 - 第三頁起逐句精修；基礎及進階完整範文皆有逐段中譯。
 - 每生一份完整 PDF、全班前兩頁列印合併 PDF、教師 Excel 與匿名共通錯誤講義。
