@@ -4,6 +4,10 @@
 
 ## 完整套件
 
+最新版：[english-essay-feedback-v2.zip](english-essay-feedback-v2.zip)（2026-10-14）。包含跨 agent JSON 資料規格、固定 PDF / Excel 模板、渲染器、虛構範例與測試。解壓縮後先讀套件內的 README.md。需要 Python、requirements.txt 中的套件及合法可用的中文字型／手寫英文字型；不需要 chezmoi。
+
+v2 已測試短文、840字120句長文、全班前兩頁合併、紅筆原稿註記與 Excel 公式更新；尚未在其他 agent 或 macOS / Linux 實測。長文完整保留、詳解延伸，第一頁容量不足時標示節錄；短文以個別補寫任務引導，不代寫學生原稿。字數扣分以當次官方規準為準。原始版本保留如下。
+
 下載 [english-essay-feedback-v1.zip](english-essay-feedback-v1.zip)，解壓縮至名為 `english-essay-feedback` 的資料夾。壓縮檔根目錄即為 skill 內容，不包含外層資料夾。
 
 Codex 個人安裝位置為 `~/.codex/skills/english-essay-feedback/`；安裝完成後的檔案應是 `~/.codex/skills/english-essay-feedback/SKILL.md`。若已有舊版本，請先保留備份。
