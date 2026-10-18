@@ -4,7 +4,9 @@
 
 ## 完整套件
 
-目前最新版：[english-essay-feedback-v8.zip](english-essay-feedback-v8.zip)（2026-10-18）。學生頁標題英文優先、中文輔助；第二頁上方集中評分依據與完整英中評語，下方三欄個別任務，再接獨立量化／質化反思。新增英文題目／任務／反思欄位，Excel保留英中指令；第二頁有容量預檢，超量明示診斷而不縮字刪作答線。公開分享版仍為本機草案，未發布。
+目前最新版：[english-essay-feedback-v9.zip](english-essay-feedback-v9.zip)（2026-10-18）。第二頁上方橫向評分依據表及完整英中評語，下方三個全寬直式任務，各保留作答線與完成方框。反思也由上到下，中文翻譯用括號，每題只編號一次；Before／After各五顆空心星星由學生手填，表示回溯自評。保留11–12pt正文與容量預檢。公開分享版仍為本機草案，未發布。
+
+歷史版本：[english-essay-feedback-v8.zip](english-essay-feedback-v8.zip)（2026-10-18）。英中標題、上方教師／下方學生分區；三欄任務與左右反思已由v9取代。英文題目／任務／反思欄位與Excel英中保存、容量預檢繼續沿用。
 
 歷史版本：[english-essay-feedback-v7.zip](english-essay-feedback-v7.zip)（2026-10-14）。第二頁恢復三項獨立個別化任務，另列2–3題反思，預設2題，不用反思替代第三個任務。資料版本4.0，Excel預留三題欄位，不足三題時留白。
 
