@@ -1,0 +1,4 @@
+interface:
+  display_name: "高中英文作文精批與修訂"
+  short_description: "手寫紅筆批改、雙語評語、個別修訂任務、列印版與全班成績彙整"
+  default_prompt: "請使用 $english-essay-feedback 依指定題目與評分規準批改作文，先完成一位學生的樣本，保留原稿並產生個人完整版及前兩頁列印版。"
