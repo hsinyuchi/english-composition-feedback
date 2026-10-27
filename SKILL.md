@@ -1,5 +1,6 @@
 ---
-name: hsinyuchi-essay-feedback
+name: sylvia-essay
+aliases: [english-composition-feedback, hsinyuchi-essay-feedback]
 description: 批改臺灣高中職學生英文手寫或文字作文，依指定考試規準提供原稿紅筆註記、逐句精修、雙語評語、個別修訂任務、英中範文及班級成績彙整。適用學測或教師指定寫作評量；不將課前寫作引導自動加入批改成品。
 ---
 
