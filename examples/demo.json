@@ -1,0 +1,48 @@
+{
+  "schema_version":"4.0",
+  "assignment":"虛構範例｜My Favorite Park",
+  "assignment_en":"My Favorite Park",
+  "rubric_source":"115學測英文作文規準（虛構示例估分）",
+  "rubric_url":"https://www.ceec.edu.tw/xcepaper/cont?sid=0Q111569514236767793&sq=%E9%9D%9E%E9%81%B8%E6%93%87%E9%A1%8C%E8%A9%95%E5%88%86&xsmsid=0J066588036013658199",
+  "rubric_checked":"2026-10-14",
+  "students":[{
+    "id":"demo-01","class":"DEMO","seat":1,"name":"虛構學生",
+    "paragraphs":["The park have many trees. I enjoy walk there.","It is quiet, so I can relax after school."],
+    "reported_count":20,
+    "focus_original":"The park have many trees.",
+    "optional_rewrites":[
+      {"sentence_id":3,"original":"It is quiet.","alternative":"The park is peaceful.","note":"原寫法可保留"},
+      {"sentence_id":1,"original":"trees","alternative":"leafy trees","note":"原詞可用；可增加細節"}
+    ],
+    "scores":[
+      {"label":"內容","value":3,"max":5,"reason":"有偏好及原因，細節仍少。"},
+      {"label":"組織","value":3,"max":5,"reason":"主題清楚，段落可再充實。"},
+      {"label":"文法句構","value":2,"max":5,"reason":"主謂一致與動名詞需訂正。"},
+      {"label":"字彙拼字","value":3,"max":5,"reason":"基本詞彙適切，可增加搭配詞。"}
+    ],
+    "deduction":0,"deduction_reason":"測試資料，不套用正式考試扣分。",
+    "short_comment":{"en":"Your reason is clear. Add a detail and check the verbs.","zh":"理由清楚；再補一個細節，並檢查動詞。"},
+    "full_comment":{"en":"You explain how the park helps you relax. Keep this personal connection. Check subject-verb agreement and enjoy + -ing, then add a detail about the trees.","zh":"你說明公園如何幫助自己放鬆，值得保留。接著檢查主謂一致、enjoy 後的動名詞，再補充樹木的細節。"},
+    "tasks":[
+      {"instruction":"修正 have 與 enjoy walk，並說明一處理由。","instruction_en":"Correct the verbs and explain one change.","lines":3},
+      {"instruction":"連接 The park… 與 I enjoy…，呈現明確關聯。","instruction_en":"Connect two ideas clearly.","lines":3},
+      {"instruction":"在 It is quiet… 後補一句：什麼細節讓你放鬆？","instruction_en":"Add one detail about feeling relaxed.","lines":3}
+    ],
+    "reflections":["我能獨立檢查動詞與句界嗎？","選一處自己的修訂，說明效果及下一篇的檢查方法。"],
+    "reflections_en":["How independently can I revise?","One change and my next check:"],
+    "sentences":[
+      {"id":1,"original":"The park have many trees.","basic":"The park has many trees.","notes":["G：The park 是單數主詞，現在式用 has。"],"advanced":"The park is filled with leafy trees."},
+      {"id":2,"original":"I enjoy walk there.","basic":"I enjoy walking there.","notes":["G：enjoy 後接動名詞 walking。"],"advanced":"I enjoy strolling along its shaded paths."},
+      {"id":3,"original":"It is quiet, so I can relax after school.","basic":"It is quiet, so I can relax after school.","notes":["原句正確，可保留。進階版調整語氣，不代表原句有錯。"],"advanced":"Its peaceful atmosphere helps me unwind after school."}
+    ],
+    "models":{
+      "basic":[{"en":"The park has many trees. I enjoy walking there.","zh":"公園有很多樹。我喜歡在那裡散步。"},{"en":"It is quiet, so I can relax after school.","zh":"那裡很安靜，所以我可以在放學後放鬆。"}],
+      "advanced":[{"en":"The park is filled with leafy trees. I enjoy strolling along its shaded paths.","zh":"公園滿是枝葉茂密的樹木。我喜歡沿著樹蔭步道散步。"},{"en":"Its peaceful atmosphere helps me unwind after school. Listening to the leaves rustle makes me feel calm.","zh":"公園寧靜的氣氛幫助我在放學後放鬆。聽樹葉沙沙作響讓我感到平靜。（第二句為教師新增示範。）"}]
+    },
+    "errors":[
+      {"sentence_id":1,"category":"G","original":"The park have","correction":"The park has","reason":"單數主詞搭配 has。"},
+      {"sentence_id":2,"category":"G","original":"enjoy walk","correction":"enjoy walking","reason":"enjoy 後接動名詞。"}
+    ],
+    "uncertainties":[]
+  }]
+}

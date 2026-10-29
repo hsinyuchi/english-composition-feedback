@@ -4,3 +4,5 @@ __pycache__/
 .venv/
 tmp/
 student-data/
+output/
+*.inspect.ndjson
