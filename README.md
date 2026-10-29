@@ -1,3 +1,28 @@
+# 高中英文作文精批與修訂 v12.0 (The Writing Edit)
+
+跨 agent 批改規範 + 雙軌 PDF / Excel / PPT / HTML 輸出體系。正式 Skill 呼叫名稱為 sylvia-essay；相容 english-essay-feedback / english-composition-feedback / hsinyuchi-essay-feedback 舊稱。
+
+## 🌟 v12.0 終極黃金架構：三階雙軌分流交付體系 (2026-10-29)
+
+融合 v4 直觀手寫批改的美學震撼，與新版雙面紙本列印的極簡實戰力，確立最終黃金標準：
+
+1. **第 1 頁：v4 黃金直觀手寫批改頁**
+   - 頂部 5 大分數膠囊與圖例。
+   - 原稿超大清晰呈現，直觀標註黑底白字微型膠囊（[W], [G], [Sp], [+], [x]）＋ 印刷體鮮紅字體浮動於詞彙正上方，紅線標註替換與刪除，零繁瑣符號、一眼定位！
+   - 底部中英文導師總評。
+2. **第 2 頁：個人化自主修訂與後設反思頁**
+   - 嚴格 45 pt 安全出血邊界，黑白灰階影印機友善。
+   - Part A 規準總覽 ＋ Part B 自主修訂任務（24 pt 寬裕手寫點狀線）＋ Part C 後設反思矩陣。
+   - **第 1 頁 ＋ 第 2 頁 ＝ 學生人手一張雙面列印紙（*_前兩頁雙面列印_雜誌風.pdf）！**
+3. **第 3 頁至第 10 頁：逐句精修電子書**
+   - 每 1 句獨立大字體卡片（原句 ➔ 精修 ➔ 考點解析與替代寫法）。
+   - 基礎修訂版（Basic Revision）與進階大師版（Enhanced Version）全文中英對照。
+   - **整本 10 頁電子書（*_完整精修電子檔_10頁雜誌版.pdf），供學生放平板或電腦隨身研讀！**
+4. **課堂教學微教材（完全保留）**
+   - 大家來找碴微講義（學用版 / 教用解答版，100% 根除缺字方框 □□□）。
+   - 全班三大盲區投影簡報（16:9 PDF / HTML 雙模）。
+
+
 # 高中英文作文精批與修訂 v11.0 (The Writing Edit)
 
 跨 agent 批改規範 + 雙軌 PDF / Excel / PPT / HTML 輸出體系。正式 Skill 呼叫名稱為 sylvia-essay；相容 english-essay-feedback / english-composition-feedback / hsinyuchi-essay-feedback 舊稱。
