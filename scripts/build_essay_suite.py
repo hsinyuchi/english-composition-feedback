@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-build_master_v15.py
-Master refinement script for Sylvia's English Composition Diagnostic Suite:
-1. Student 01, Student 35, CEEC 01:
-   - Page 1: Precision non-overlapping red annotations, brackets [ ] for phrase rewrites,
-     strikeout lines for errors, caret ^ for insertions, all floating safely in interlinear whitespace.
-   - Page 2: Clean Magazine-style Zoning (Part A Scores & Comments, Part B Personalized Revision Tasks,
-     Part C Reflection & Teacher Sign-off). Strictly Black/Grayscale palette for photocopiers.
-2. 1-Page Spot-the-Error Worksheets (大家來找碴):
-   - Pure typography (NO emojis/special symbols to prevent square box □ glyph bugs).
-   - Student Practice & Teacher Key (45pt safety bleed margins, zero truncation).
-3. 16:9 Classroom Slides (全班三大集體盲區):
-   - Huge 20-40pt typography for classroom projection legibility.
-   - Modern Bento-card visual comparison design.
-   - PDF & HTML dual output.
+build_master_option_a.py
+The Ultimate Master Generator for Sylvia's English Composition Diagnostic Suite
+Implementing Option A:
+- Page 1: Precision Non-Overlapping Anchors (①, ②, ③, ...) on Handwriting Scan +
+          Teacher Diagnostic & Edit Box (【教師逐項精修便當盒】) / Masterclass Breakdown Box
+- Page 2: Grayscale Zoned Layout (Part A, Part B, Part C) with 45pt Safety Bleed Margins
+- 1-Page Spot-the-Error Worksheets (學用版 & 教用解答版, ZERO glyph bugs)
+- 16:9 Large Typography Classroom Slides (PDF & HTML)
+Covers BOTH 111 and 110 Exam Topics!
 """
 
 import os, sys, math
@@ -30,137 +25,256 @@ from reportlab.pdfgen import canvas
 import reportlab.pdfbase.ttfonts as ttfonts
 import reportlab.pdfbase.pdfmetrics as pdfmetrics
 from pypdf import PdfWriter, PdfReader
+import fitz
 
 # Register Fonts
 pdfmetrics.registerFont(ttfonts.TTFont('JH', 'C:/Windows/Fonts/msjh.ttc'))
 pdfmetrics.registerFont(ttfonts.TTFont('JHB', 'C:/Windows/Fonts/msjhbd.ttc'))
 pdfmetrics.registerFont(ttfonts.TTFont('Georgia', 'C:/Windows/Fonts/georgia.ttf'))
 pdfmetrics.registerFont(ttfonts.TTFont('GeorgiaBold', 'C:/Windows/Fonts/georgiab.ttf'))
-pdfmetrics.registerFont(ttfonts.TTFont('Hand', 'C:/Windows/Fonts/Inkfree.ttf'))
+pdfmetrics.registerFont(ttfonts.TTFont('GeorgiaItalic', 'C:/Windows/Fonts/georgiai.ttf'))
 
-# Output & Temp Dirs
-OUT_DIR = Path("H:/我的雲端硬碟/# Sylvia's Workspace/01 講師素材/[置頂] My Workshop Materials/研習素材包/學測英文作文學生原稿/110學測_亂入花圃學生稿/去識別化版之學生作文/output")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+# Directories
+OUT_111 = Path("H:/我的雲端硬碟/# Sylvia's Workspace/01 講師素材/[置頂] My Workshop Materials/研習素材包/學測英文作文學生原稿/301 111學測作文 (喜歡的公園類型)/output")
+OUT_110 = Path("H:/我的雲端硬碟/# Sylvia's Workspace/01 講師素材/[置頂] My Workshop Materials/研習素材包/學測英文作文學生原稿/110學測_亂入花圃學生稿/去識別化版之學生作文/output")
 TMP = Path("C:/Users/user/.gemini/antigravity/brain/7148bf21-122a-418b-a09d-b71b1a4f0440/scratch")
 
-# Color Palettes
-# Page 1 Accents
+OUT_111.mkdir(parents=True, exist_ok=True)
+OUT_110.mkdir(parents=True, exist_ok=True)
+
+# Styles
 GREEN = '#006A4E'
 RED = '#BC1632'
-BLUE = '#164FB2'
+BLUE = '#2563EB'
+GOLD = '#B45309'
 
-# Page 2 Strictly Black & Grayscale Palette (Photocopier Safe)
-DARK_PILL = '#1E293B'    # Solid deep charcoal / black for header pills
-BORDER_COLOR = '#CBD5E1' # Crisp neutral 0.8pt borders
-TEXT_DARK = '#0F172A'    # Primary readable black text
-TEXT_MUTED = '#475569'   # Secondary dark slate text
-LINE_DOTTED = '#94A3B8'  # Dotted lines for student handwriting
-BG_LIGHT_GRAY = '#F8FAFC'# Very faint gray background
+DARK_PILL = '#1E293B'
+BORDER_COLOR = '#CBD5E1'
+TEXT_DARK = '#0F172A'
+TEXT_MUTED = '#475569'
+LINE_DOTTED = '#94A3B8'
+BG_LIGHT_GRAY = '#F8FAFC'
 
-# Slide Dimensions
 SLIDE_W, SLIDE_H = 960, 540
 
 # ==================== DATA DEFINITIONS ====================
 
-DATA_S01 = {
+# ----- 111 Topic Data -----
+DATA_111_S01 = {
+    'id': '301_01',
+    'exam_year': '111',
+    'exam_topic': '規劃理想新公園',
+    'title': '301 班第一篇 (6號同學 練習原稿)',
+    'subtitle': '學測英文作文個人診斷與精修歷程單',
+    'words': 124,
+    'total': 9.0,
+    'grade_tier': '待加強 (第2級距)',
+    'total_desc': '實測 124 字（達 120 字標）；扣除 0 分',
+    'scores': [
+        ('內容 (Content)', '2.5', '能提及公園 A（設施）與 B（樹木），但理由撰寫較單薄，好處僅簡述涼爽。'),
+        ('組織 (Organization)', '2.5', '具兩段式雛形（對比童年 vs. 長大），但轉折詞誤用（In reverse 應為 In contrast）。'),
+        ('文法 (Grammar)', '2.0', '多處主詞動詞不一致 (have)、雙動詞混淆 (are be set) 及 will 後漏 be。'),
+        ('字彙 (Vocabulary)', '2.0', '詞性混淆 (differ)、搭配詞不自然 (take a picnic 建議用 have a picnic)。')
+    ],
+    'feedback_zh': '段落架構清晰，能以自身成長經驗構思新公園，兼顧設施與綠意！建議下次著重三點：1. 單數動詞加 s（Picture A has）；2. 避免中式直譯（as I grew older）；3. will 後方形容詞補原形 be（it will be cool）。',
+    'feedback_en': "Your idea of blending fun facilities with greenery is authentic! Next draft, focus on: 1. Subject-verb agreement; 2. Natural expressions instead of direct translation; 3. Add 'be' after 'will'.",
+    'tasks': [
+        ('【任務 1：基礎主謂一致與助動詞】修正第 4 行「Picture A have」與第 12 行「it will very cool」，寫出兩句完整正句。', 1),
+        ('【任務 2：戒除中式直譯】將第 8 行「along with my ages going up」改寫為地道自然的「as I grew older」。', 1),
+        ('【任務 3：地道搭配詞練習】修正「differ parks」與「take a picnic」，將其替換為符合大考水準的精準字詞。', 2)
+    ],
+    'is_ceec': False,
+    'img_name': '111_s01_enhanced.png',
+    'anchors': [
+        ('1', 0.08, 0.22, 0.07, BLUE, False),  # In this day
+        ('2', 0.24, 0.32, 0.21, RED, True),    # differ parks
+        ('3', 0.27, 0.33, 0.28, RED, True),    # Picture A have
+        ('4', 0.70, 0.88, 0.28, RED, True),    # are be set
+        ('5', 0.24, 0.64, 0.58, BLUE, False),  # along with my ages...
+        ('6', 0.60, 0.88, 0.73, BLUE, False),  # take a picnic
+        ('7', 0.16, 0.26, 0.86, RED, True),    # it will very cool
+    ],
+    'edit_box': [
+        ('①', 'In this day', '【修辭更佳】', BLUE, '(建議用 Nowadays 或 In recent years 更佳)', '原句可通，但大考寫作採用書面副詞能讓開篇更具語氣權威感。'),
+        ('②', 'differ parks', '【文法更正】', RED, 'different parks', '修飾名詞 parks 應使用形容詞 different，而非動詞 differ。'),
+        ('③', 'Picture A have', '【文法更正】', RED, 'Picture A has', '主詞 Picture A 為第三人稱單數，現在式動詞應加 -s 改為 has。'),
+        ('④', 'are be set', '【文法更正】', RED, 'are set up / are built', '設施配置應用被動語態 are set up，不可 are 與 be 兩動詞疊用。'),
+        ('⑤', 'along with my ages...', '【修辭更佳】', BLUE, '= as I grew older,', '中文「隨著年齡增長」英文地道慣用語為 as I grew older，避免逐字中翻英。'),
+        ('⑥', 'take a picnic', '【修辭更佳】', BLUE, '(建議用 have a picnic 更佳)', '生活中最道地之動賓搭配詞為 have a picnic 或 go on a picnic。'),
+        ('⑦', 'it will very cool', '【文法更正】', RED, 'it will be very cool', '助動詞 will 後方接形容詞 cool，必須補上原形動詞 be。')
+    ]
+}
+
+DATA_111_CEEC = {
+    'id': '111_CEEC_01',
+    'exam_year': '111',
+    'exam_topic': '規劃理想新公園',
+    'title': '大考中心官方公布之佳作 01',
+    'subtitle': '學測英文作文個人診斷與精修歷程單 (特優典範)',
+    'words': 248,
+    'total': 18.5,
+    'grade_tier': '特優 (第5級距 / 前1%)',
+    'total_desc': '實測 248 字；篇幅宏大、層次深邃；思維細膩、用字極雅；扣除 0 分',
+    'scores': [
+        ('內容 (Content)', '5.0', '兼顧設施多元與生態寧靜，論點成熟具前瞻性，描摹生動。'),
+        ('組織 (Organization)', '4.5', '起承轉合極致自然，轉折詞銜接無縫，層次推進水到渠成。'),
+        ('文法 (Grammar)', '4.5', '句型多樣（分詞構句、關係代名詞非限定、虛主詞），零重大瑕疵。'),
+        ('字彙 (Vocabulary)', '4.5', '用字精準典雅，精準使用 tranquil oasis, harmonious blend 等亮點詞。')
+    ],
+    'feedback_zh': '全篇展現超群之寫作素養！將公園定位為現代都市中的「心靈綠洲」，以設施活力與自然靜謐相互映襯，論點極具說服力與美感。',
+    'feedback_en': "A flawless exemplary model. Your holistic vision of modern urban parks—balancing functional energy with ecological peace—demonstrates native-level fluency.",
+    'tasks': [
+        ('【任務 1：高階意象金句摘錄】從第一段找出形容綠意與放鬆的 2 個極佳搭配詞，並記錄於下方。', 1),
+        ('【任務 2：複合句型仿寫】模仿第 2 段開頭之「融合理想」句型，自己造出 1 個複合句。', 1),
+        ('【任務 3：典範修辭移植】將本文精選名詞「tranquil oasis」納入自己的下一篇寫作草稿中。', 2)
+    ],
+    'is_ceec': True,
+    'img_col1': '111_ceec_col1_enhanced.png',
+    'img_col2': '111_ceec_col2_enhanced.png',
+    'anchors': [
+        ('❶', 0.12, 0.40, 0.15, GOLD, False, 1), # Col 1
+        ('❷', 0.10, 0.45, 0.48, GOLD, False, 1), # Col 1
+        ('❸', 0.12, 0.42, 0.20, GOLD, False, 2), # Col 2
+        ('❹', 0.10, 0.48, 0.55, GOLD, False, 2), # Col 2
+    ],
+    'edit_box': [
+        ('❶', 'urban sanctuaries & green haven', '【意象建立】', GOLD, '自然景觀鋪陳', '開篇立即營造公園作為城市綠洲的安寧畫面感，跳脫模板。'),
+        ('❷', 'Not only does it offer..., but...', '【句構變化】', GOLD, '部分倒裝句型', '精準運用 Not only 置於句首引發倒裝，強化排比氣勢與論證力。'),
+        ('❸', 'a harmonious blend of nature & leisure', '【學術搭配】', GOLD, '高階動賓/名詞搭配', 'blend 搭配 of 展現高度精煉之語言掌控力，為大考高分關鍵。'),
+        ('❹', 'fostering a sense of belonging', '【深層哲理】', GOLD, '分詞構句深化結尾', '以 V-ing 分詞構句收尾，將休閒場域昇華為社區情感連結。')
+    ]
+}
+
+# ----- 110 Topic Data -----
+DATA_110_S01 = {
     'id': 'Student_01',
-    'title': '去識別化 Student 01',
-    'subtitle': '學測英文作文個人診斷與修訂歷程單',
+    'exam_year': '110',
+    'exam_topic': '花圃踩踏情境題',
+    'title': '學生練習 Student 01',
+    'subtitle': '學測英文作文個人診斷與精修歷程單',
     'words': 118,
     'total': 10.0,
-    'grade_tier': '及格 (第 3 級分)',
-    'total_desc': '實測 118 字（達 120 字基本要求）；兩段式結構完整；扣分 0。',
+    'grade_tier': '及格 (第3級距)',
+    'total_desc': '實測 118 字（逼近 120 字標）；兩段式結構完整；扣除 0 分',
     'scores': [
-        ('內容 (Content)', '2.5', '切合花圃被破壞之情境與立場，惟首段描述僅 40 字，缺少現場感官細節。'),
-        ('組織 (Organization)', '2.5', '兩段架構分明，惟第二段因果句型串接較重複 (I would feel... because...)。'),
-        ('文法 (Grammar)', '2.5', '以簡單句為主，第二段假設法時態前後不一致 (were 誤用，需改為 would be)。'),
-        ('字彙 (Vocabulary)', '2.5', '詞彙生活化，出現形似字混淆：sigh (嘆氣) 誤寫為 sign (告示牌)。')
+        ('內容 (Content)', '2.5', '切入花圃被破壞之情境，但第 1 段僅述及 40 字，缺乏現場遊客踩踏細節。'),
+        ('組織 (Organization)', '2.5', '兩段分明，但第二段因果句型串接重複 (I would feel... because...)。'),
+        ('文法 (Grammar)', '2.5', '以簡易句為主，第二段假設法時態前後不一致 (were 誤用，應修為 would be)。'),
+        ('字彙 (Vocabulary)', '2.5', '詞彙生活化，但出現形似字混淆：sigh (嘆氣) 誤寫為 sign (指示牌)。')
     ],
-    'feedback_zh': '明確掌握花圃主人的心痛與憤怒，立場清晰。建議：第 1 段多描寫 1-2 句遊客踩踏的動作細節；訂正 sign 的拼字；並注意假設法時態的前後一致性。',
+    'feedback_zh': '精確掌握花圃主人的心痛與憤怒，立場清晰！建議下次第 1 段多描寫 1-2 句遊客踩踏的視覺細節；改正 sign 的拼字，並注意假設法動詞的一致性。',
     'feedback_en': "You clearly understand the garden owner's feelings. For the next draft, add 1-2 visual sentences in paragraph 1, correct the spelling of 'sign', and keep verb tenses consistent.",
     'tasks': [
-        ('【任務 1：字彙拼寫與搭配詞】請將第 2 行 sigh 改為 sign，並將 public manners 替換為自然道地的 good manners：', 1),
-        ('【任務 2：句型串接與轉折簡化】請將第 3 行「Because of that, they walk...」簡化為「Therefore, they walk...」：', 1),
-        ('【任務 3：細節增補挑戰】請在第 1 段補寫 1 句（約 15 字），生動描寫遊客為了拍照而踐踏花朵的動作：', 2)
+        ('【任務 1：字彙拼寫與搭配詞】請將第 2 行 sigh 改為 sign，並將 public manners 替換為自然的地道詞彙。', 1),
+        ('【任務 2：句型串接與轉折簡練】將第 3 行「Because of that...」精簡為轉折副詞「Therefore,...」，使語氣更精鍊。', 1),
+        ('【任務 3：細節增補挑戰】在第 1 段補寫 1 句（約 15 字），生動描繪遊客為了拍照而踩踏花草的具體動作。', 2)
     ],
-    'annotations': [
-        # Line 1: in a field of flowers -> [in a field of flowers] = in a flower garden
-        {'type': 'bracket', 'x1': 0.52, 'x2': 0.92, 'y': 0.070, 'text': '= in a flower garden', 'dy': 22},
-        # Line 2: sigh -> sign
-        {'type': 'strike', 'x': 0.58, 'w': 0.09, 'y': 0.145, 'text': 'sign (告示牌)', 'tag': 'Sp', 'dy': 20},
-        # Line 3: Because of that -> Therefore,
-        {'type': 'strike', 'x': 0.22, 'w': 0.22, 'y': 0.219, 'text': 'Therefore,', 'tag': 'W', 'dy': 20},
-        # Line 5: heartbroken with caret ^
-        {'type': 'caret', 'x': 0.46, 'y': 0.368, 'text': 'heartbroken', 'dy': 18},
-        # Line 7: were -> would be
-        {'type': 'strike', 'x': 0.40, 'w': 0.08, 'y': 0.526, 'text': 'would be', 'tag': 'G', 'dy': 20},
-        # Line 10: public manners -> good manners
-        {'type': 'strike', 'x': 0.06, 'w': 0.25, 'y': 0.772, 'text': 'good manners', 'tag': 'W', 'dy': 20},
+    'is_ceec': False,
+    'img_name': 's01_enhanced_crop.png',
+    'anchors': [
+        ('1', 0.52, 0.90, 0.07, BLUE, False),  # in a field of flowers
+        ('2', 0.58, 0.68, 0.145, RED, True),   # sigh -> sign
+        ('3', 0.22, 0.44, 0.219, BLUE, False), # Because of that
+        ('4', 0.46, 0.58, 0.368, RED, True),   # heartbroken (need was)
+        ('5', 0.40, 0.48, 0.526, RED, True),   # were -> would be
+        ('6', 0.06, 0.31, 0.772, BLUE, False), # public manners
+    ],
+    'edit_box': [
+        ('①', 'in a field of flowers', '【修辭更佳】', BLUE, '(建議用 in a flower garden 更佳)', '原句文意清楚，但以 a flower garden 描摹私人精心照料之花園更為地道精準。'),
+        ('②', 'sigh', '【文法更正】', RED, 'sign (告示牌)', '形似字筆誤。sigh 為「嘆氣」，表示「設立告示牌」應使用 sign。'),
+        ('③', 'Because of that', '【修辭更佳】', BLUE, '(建議用 Therefore 或 As a result 更佳)', '原文文法正確！但大考學術寫作多採用轉折副詞 Therefore 連接，語氣更顯成熟。'),
+        ('④', 'heartbroken', '【文法更正】', RED, 'was heartbroken', '主詞 I 後方缺少主要動詞，應補上 be 動詞 was 形成完整的形容詞述語。'),
+        ('⑤', 'were', '【文法更正】', RED, 'would be', '第二段設想若自己是主人之假想情境，後句主要子句動詞應用 would be。'),
+        ('⑥', 'public manners', '【修辭更佳】', BLUE, '(建議用 good manners 或 civic awareness 更佳)', '形容公眾公德心或規矩，常用 good manners 或 civic awareness。')
     ]
 }
 
-DATA_S35 = {
+DATA_110_S35 = {
     'id': 'Student_35',
-    'title': '去識別化 Student 35 (30135)',
-    'subtitle': '學測英文作文個人診斷與修訂歷程單',
+    'exam_year': '110',
+    'exam_topic': '花圃踩踏情境題',
+    'title': '學生練習 Student 35 (30135)',
+    'subtitle': '學測英文作文個人診斷與精修歷程單',
     'words': 167,
     'total': 14.0,
-    'grade_tier': '良好 (第 4 級分)',
-    'total_desc': '實測 167 字且分兩段，篇幅達標；結尾昇華「欣賞始於尊重」；扣分 0。',
+    'grade_tier': '良好 (第4級距)',
+    'total_desc': '實測 167 字；兩段篇幅厚實；結尾點出「欣賞始於尊重」；扣除 0 分',
     'scores': [
-        ('內容 (Content)', '3.5', '選定花圃主人立場切題，末句「欣賞始於尊重」思想深刻；惟首段實景描摹略少。'),
-        ('組織 (Organization)', '3.5', '兩段式架構分明，首尾呼應；惟第二段出現 Because 從屬子句獨立成句之破句。'),
-        ('文法 (Grammar)', '3.5', '能運用假設法條件句；惟出現 Because 破句（Sentence Fragment），需改善。'),
-        ('字彙 (Vocabulary)', '3.5', '詞彙豐富且切題；惟有明顯筆誤 destory (應為 destroy)，且 space owners 宜修為 garden owners。')
+        ('內容 (Content)', '3.5', '切入園主立場深刻，末段「欣賞始於尊重」思想成熟；但首段實景描摹略少。'),
+        ('組織 (Organization)', '3.5', '兩段式架構分明，首尾呼應；但第二段出現 Because 從屬子句獨立成句之破句。'),
+        ('文法 (Grammar)', '3.5', '善用假設條件句；但出現 Because 破句（Sentence Fragment），需留意主句。'),
+        ('字彙 (Vocabulary)', '3.5', '詞彙豐富且切題，出現明顯筆誤 destory (應為 destroy)，另 space owners 宜修。')
     ],
-    'feedback_zh': '結尾點出「真正的欣賞始於尊重」展現難能可貴的思想深度！第 1 段宜加強對花圃遭踐踏的視覺實景描摹，並將以 Because 開頭的破句與前句合併為完整複合句。',
-    'feedback_en': "Your concluding insight that 'true appreciation begins with respect' elevates the moral depth of your essay. Strengthen paragraph 1 by anchoring it in visible flowerbed details, and connect the fragment starting with 'Because'.",
+    'feedback_zh': '結尾點出「真正的欣賞始於尊重」，立意高遠極具說服力！建議第 1 段補強對花圃遭踐踏的視覺實景描摹；修正 Because 開頭的破句，將其與後句合併。',
+    'feedback_en': "Your concluding insight that 'true appreciation begins with respect' elevates the moral depth of your essay. Connect the fragment starting with 'Because' and fix 'destory'.",
     'tasks': [
-        ('【任務 1：拼字與選詞】修正 destory 為 destroy，並將 space owners 替換為 garden owners / growers：', 1),
-        ('【任務 2：破句重組】將第 6 句「Because this place means a lot to me...」與前句合併為完整複合句：', 1),
-        ('【任務 3：感官細節擴充】在第 1 段增寫 1 句（約 15-20 字），描繪花瓣遭遊客踐踏倒伏的畫面：', 2)
+        ('【任務 1：拼字與用詞精修】修正 destory 為 destroy，並將 space owners 替換為 garden owners。', 1),
+        ('【任務 2：破句重組】將第 6 行「Because this place means a lot to me...」從屬子句合併至後方主句。', 1),
+        ('【任務 3：感官細節增補】在第 1 段補寫 1 句（約 15-20 字），描繪花草被踩扁凋零的視覺畫面。', 2)
     ],
-    'annotations': [
-        {'type': 'bracket', 'x1': 0.10, 'x2': 0.32, 'y': 0.08, 'text': '= In modern society,', 'dy': 22},
-        {'type': 'bracket', 'x1': 0.14, 'x2': 0.45, 'y': 0.16, 'text': '= visit floral exhibitions', 'dy': 22},
-        {'type': 'strike', 'x': 0.74, 'w': 0.12, 'y': 0.35, 'text': 'destroy', 'tag': 'Sp', 'dy': 20},
-        {'type': 'strike', 'x': 0.50, 'w': 0.22, 'y': 0.44, 'text': 'garden owners', 'tag': 'W', 'dy': 20},
-        {'type': 'strike', 'x': 0.08, 'w': 0.16, 'y': 0.52, 'text': 'This is because', 'tag': 'G', 'dy': 20},
-        {'type': 'strike', 'x': 0.62, 'w': 0.18, 'y': 0.86, 'text': 'not only for..., but also for...', 'tag': 'G', 'dy': 20},
+    'is_ceec': False,
+    'img_name': 's35_full_enhanced_crop.png',
+    'anchors': [
+        ('1', 0.10, 0.32, 0.08, BLUE, False),  # In modern times
+        ('2', 0.14, 0.45, 0.16, BLUE, False),  # floral exhibitions
+        ('3', 0.74, 0.86, 0.35, RED, True),    # destory
+        ('4', 0.50, 0.72, 0.44, BLUE, False),  # space owners
+        ('5', 0.08, 0.24, 0.52, RED, True),    # Because fragment
+        ('6', 0.62, 0.80, 0.86, BLUE, False),  # not only... but also
+    ],
+    'edit_box': [
+        ('①', 'In modern times', '【修辭更佳】', BLUE, '(建議用 In modern society 或 Nowadays 更佳)', '英文習慣以 In modern society 或 Nowadays 表達當今社會現況。'),
+        ('②', 'floral exhibitions', '【修辭更佳】', BLUE, '(建議用 visit flower fields 更佳)', '一般農家花田非正式展覽會，用 flower fields 語意更加切題生活化。'),
+        ('③', 'destory', '【文法更正】', RED, 'destroy', '拼字筆誤。正確拼法為 destroy。'),
+        ('④', 'space owners', '【修辭更佳】', BLUE, '(建議用 garden owners 或 growers 更佳)', 'space 過於籠統，改用 garden owners 或 growers 更精準地道。'),
+        ('⑤', 'Because this place...', '【文法更正】', RED, '破句重組 (Sentence Fragment)', 'Because 引導從屬子句不可單獨成句，應與後方主句用逗號串聯成完整句。'),
+        ('⑥', 'not only for..., but...', '【修辭更佳】', BLUE, 'not only to appreciate..., but also to respect...', '平行對稱結構：前後兩端介系詞或不定詞形式應保持對稱整齊。')
     ]
 }
 
-DATA_CEEC = {
-    'id': '大考中心佳作01',
-    'title': '大考中心公告之佳作 01',
-    'subtitle': '學測英文作文個人診斷與修訂歷程單 (特優典範篇)',
+DATA_110_CEEC = {
+    'id': '110_CEEC_01',
+    'exam_year': '110',
+    'exam_topic': '花圃踩踏情境題',
+    'title': '大考中心官方公布之佳作 01',
+    'subtitle': '學測英文作文個人診斷與精修歷程單 (特優典範)',
     'words': 284,
     'total': 18.5,
-    'grade_tier': '特優 (第 5 級分 / 全國前 1%)',
-    'total_desc': '實測 284 字，篇幅宏大、層次深邃；思維圓融、文字極致流暢；扣分 0。',
+    'grade_tier': '特優 (第5級距 / 前1%)',
+    'total_desc': '實測 284 字；篇幅宏大、層次深邃；思維深刻、用字極雅；扣除 0 分',
     'scores': [
-        ('內容 (Content)', '5.0', '以遊客自省立場出發，深刻剖析從眾心理與私慾盲點，思維深刻具高度說服力。'),
-        ('組織 (Organization)', '4.5', '起承轉合極致自然，轉折詞與分詞構句無縫銜接，行文如行雲流水。'),
-        ('文法 (Grammar)', '4.5', '高階句型（倒裝句、分詞構句、複合子句）融會貫通，幾無語法瑕疵。'),
-        ('字彙 (Vocabulary)', '4.5', '用字精準典雅，展現驚人之搭配詞掌控力（如 aesthetic appreciation, self-discipline 等）。')
+        ('內容 (Content)', '5.0', '以遊客自省切入，深刻剖析從眾心理與盲點，思維成熟極具說服力。'),
+        ('組織 (Organization)', '4.5', '起承轉合極致自然，轉折詞運用無縫銜接，行文如行雲流水。'),
+        ('文法 (Grammar)', '4.5', '句型結構豐富多元（倒裝句、名詞子句、假設法），幾無語病。'),
+        ('字彙 (Vocabulary)', '4.5', '用字精準典雅，精準運用 aesthetic appreciation, self-discipline 等詞。')
     ],
-    'feedback_zh': '通篇兼具文學美感與哲理省思，以遊客第一人稱自省視角切入，深刻剖析從眾自私心理，文字流暢純熟，足為全國高中生之終極學習標竿。',
-    'feedback_en': "A masterclass in high-school composition. Your reflective stance from the tourist's self-awareness moves far beyond cliches. Superb vocabulary and varied sentence architecture.",
+    'feedback_zh': '全篇兼具文學美感與哲思深度！以遊客第一人稱視角切入，深刻反省「自私之愛」的盲點，流暢純熟，足以作為全國高中生之終極學習標竿。',
+    'feedback_en': "A masterclass in high-school composition. Your reflective stance moves far beyond clichés, showcasing sublime vocabulary and diverse sentence architecture.",
     'tasks': [
-        ('【任務 1：哲理名句提煉】請從本文挑選 1 句你最欣賞的哲理金句，並試著仿寫於下方：', 1),
-        ('【任務 2：高階轉折串接】請找出本文如何運用分詞構句連結轉折，並造出 1 個相似句型：', 1),
-        ('【任務 3：典範修辭移植】將本文精選搭配詞「aesthetic appreciation」融入自己的下一篇作文構思中：', 2)
+        ('【任務 1：哲學反思金句摘錄】從本文中找出 1 句最令你震撼的哲思金句，並試著仿寫於下方。', 1),
+        ('【任務 2：名詞子句串接】找出作者如何運用名詞子句表達心境轉折，並寫出 1 句相似句型。', 1),
+        ('【任務 3：典範修辭移植】將本文精選搭配詞「aesthetic appreciation」融入自己的下一篇寫作草稿中。', 2)
     ],
-    'annotations': [
-        {'type': 'bracket', 'x1': 0.08, 'x2': 0.40, 'y': 0.10, 'text': 'Magnificent opening!', 'dy': 20},
-        {'type': 'bracket', 'x1': 0.55, 'x2': 0.92, 'y': 0.35, 'text': 'Exquisite vocabulary', 'dy': 20},
-        {'type': 'bracket', 'x1': 0.10, 'x2': 0.45, 'y': 0.65, 'text': 'Superb parallel structure', 'dy': 20},
+    'is_ceec': True,
+    'img_col1': 'ceec_col1_enhanced.png',
+    'img_col2': 'ceec_col2_enhanced.png',
+    'anchors': [
+        ('❶', 0.10, 0.45, 0.12, GOLD, False, 1),
+        ('❷', 0.12, 0.48, 0.45, GOLD, False, 1),
+        ('❸', 0.08, 0.42, 0.22, GOLD, False, 2),
+        ('❹', 0.10, 0.50, 0.60, GOLD, False, 2),
+    ],
+    'edit_box': [
+        ('❶', 'Captivated by the floral tapestry...', '【分詞構句】', GOLD, '畫面感生動鋪陳', '以 V-ed 分詞構句開篇，迅速建立陶醉花海的立體視覺感。'),
+        ('❷', 'blinded by our desire for vanity', '【哲思深度】', GOLD, '精闢剖析自私心態', '精準點出遊客為拍美照而無視自然被毀之「虛榮盲點」，立意高遠。'),
+        ('❸', 'True appreciation stems from...', '【名言式總結】', GOLD, '主題昇華與思想定錨', '以肯定句式直接定義「真正的鑑賞始於敬畏」，具格言式震撼力。'),
+        ('❹', 'a delicate balance between nature & human', '【人文反思】', GOLD, '格局宏大之結語', '將單純的觀光事件提升至人與自然和諧共存之宏觀哲理層次。')
     ]
 }
 
-# ==================== PAGE 1 ENGINE ====================
+# ==================== PAGE 1 RENDER ENGINE (OPTION A) ====================
 
-def render_page_1_clean(data, out_pdf_path):
+def render_page_1_option_a(data, out_pdf_path):
     c = canvas.Canvas(str(out_pdf_path), pagesize=A4)
     w, h = A4
     left = 40
@@ -173,1074 +287,891 @@ def render_page_1_clean(data, out_pdf_path):
     c.setFillColor(colors.HexColor(GREEN))
     c.drawString(left, h - 25, 'THE WRITING EDIT  |  ESSAY DIAGNOSTIC REPORT')
     c.setFont('JH', 8.5)
-    c.setFillColor(colors.HexColor('#475569'))
-    c.drawRightString(w - left, h - 25, '學測英文作文個人診斷與修訂歷程單 (正面)')
+    c.setFillColor(colors.HexColor(TEXT_MUTED))
+    c.drawRightString(w - left, h - 25, '學測英文作文個人診斷與精修歷程單 (第1頁)')
 
     # Title & Metadata
-    c.setFont('JHB', 16)
+    c.setFont('JHB', 15)
     c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left, h - 52, data['title'])
-    c.setFont('JH', 9.5)
+    c.drawString(left, h - 50, data['title'])
+    c.setFont('JH', 9)
     c.setFillColor(colors.HexColor(TEXT_MUTED))
-    c.drawString(left, h - 68, f"110 學測英文作文（花圃踐踏情境題） |  實測字數：{data['words']} 字  |  總分：{data['total']} 分")
+    c.drawString(left, h - 66, f"{data['exam_year']} 學測英文作文（{data['exam_topic']}）  |  實測字數：{data['words']} 字  |  總分：{data['total']} 分")
 
     # Score Pill Badge on Top Right
     c.setFillColor(colors.HexColor(DARK_PILL))
-    c.roundRect(w - left - 110, h - 72, 110, 26, 4, fill=1, stroke=0)
+    c.roundRect(w - left - 105, h - 70, 105, 26, 4, fill=1, stroke=0)
     c.setFillColor(colors.white)
-    c.setFont('GeorgiaBold', 13)
-    c.drawCentredString(w - left - 55, h - 55, f"{data['total']} / 20")
-    c.setFont('JH', 7.5)
-    c.drawCentredString(w - left - 55, h - 66, data['grade_tier'].split(' ')[0])
+    c.setFont('GeorgiaBold', 12)
+    c.drawCentredString(w - left - 52, h - 55, f"{data['total']} / 20")
+    c.setFont('JH', 7)
+    c.drawCentredString(w - left - 52, h - 65, data['grade_tier'].split(' ')[0])
 
+    # Divider
     c.setStrokeColor(colors.HexColor(BORDER_COLOR))
     c.setLineWidth(0.8)
-    c.line(left, h - 80, w - left, h - 80)
+    c.line(left, h - 76, w - left, h - 76)
 
-    # Handwriting Image Placement
-    s_id = data['id']
-    if s_id == 'Student_01':
-        img_p = TMP / "s01_enhanced_crop.png"
+    # 1. Image Scan Placement
+    if not data['is_ceec']:
+        # Single Student Scan
+        img_p = TMP / data['img_name']
         im = Image.open(img_p)
         im_w, im_h = im.size
+        
+        # Determine optimal scaling
+        # Cap height so Edit Box has ample room
+        max_scan_h = 360 if im_h / im_w < 0.85 else 410
         draw_w = avail_w
         draw_h = draw_w * (im_h / im_w)
-        draw_x = left
-        draw_y = h - 95 - draw_h
+        if draw_h > max_scan_h:
+            draw_h = max_scan_h
+            draw_w = draw_h * (im_w / im_h)
+            draw_x = left + (avail_w - draw_w) / 2
+        else:
+            draw_x = left
+            
+        draw_y = h - 86 - draw_h
 
         c.drawImage(str(img_p), draw_x, draw_y, width=draw_w, height=draw_h)
         c.setStrokeColor(colors.HexColor(BORDER_COLOR))
         c.setLineWidth(0.8)
         c.rect(draw_x, draw_y, draw_w, draw_h)
-        draw_annotations(c, draw_x, draw_y, draw_w, draw_h, data['annotations'])
 
-    elif s_id == 'Student_35':
-        img_p = TMP / "s35_full_enhanced_crop.png"
-        im = Image.open(img_p)
-        im_w, im_h = im.size
-        draw_w = avail_w
-        draw_h = min(draw_w * (im_h / im_w), h - 140)
-        draw_x = left
-        draw_y = h - 95 - draw_h
+        # Draw Clean Anchors (ONLY badge + underline, ZERO overlapping English text!)
+        for num, x1, x2, y_rel, col, is_error in data['anchors']:
+            px1 = draw_x + x1 * draw_w
+            px2 = draw_x + x2 * draw_w
+            py = draw_y + draw_h - y_rel * draw_h
 
-        c.drawImage(str(img_p), draw_x, draw_y, width=draw_w, height=draw_h)
+            # Subtle underline on original word
+            c.setStrokeColor(colors.HexColor(col))
+            c.setLineWidth(1.2)
+            if not is_error:
+                c.setDash(2, 2)
+            else:
+                c.setDash()
+            c.line(px1, py - 2, px2, py - 2)
+            c.setDash()
+
+            # Circle badge at px1 - 7
+            badge_x = px1 - 7
+            badge_y = py + 3
+            c.setFillColor(colors.HexColor(col))
+            c.circle(badge_x, badge_y, 6.5, fill=1, stroke=0)
+            c.setFillColor(colors.white)
+            c.setFont('GeorgiaBold', 7.5)
+            c.drawCentredString(badge_x, badge_y - 2.5, num)
+
+    else:
+        # CEEC Two-Column Side-by-Side Scan
+        im1 = Image.open(TMP / data['img_col1'])
+        im2 = Image.open(TMP / data['img_col2'])
+        w1, h1 = im1.size
+        w2, h2 = im2.size
+
+        col_w = (avail_w - 12) / 2
+        col1_h = col_w * (h1 / w1)
+        col2_h = col_w * (h2 / w2)
+        draw_h = max(col1_h, col2_h)
+        if draw_h > 315:
+            scale = 315 / draw_h
+            col_w *= scale
+            col1_h *= scale
+            col2_h *= scale
+            draw_h = 315
+
+        x_col1 = left + (avail_w - (col_w * 2 + 12)) / 2
+        x_col2 = x_col1 + col_w + 12
+        draw_y = h - 86 - draw_h
+
+        c.drawImage(str(TMP / data['img_col1']), x_col1, draw_y + (draw_h - col1_h), width=col_w, height=col1_h)
         c.setStrokeColor(colors.HexColor(BORDER_COLOR))
         c.setLineWidth(0.8)
-        c.rect(draw_x, draw_y, draw_w, draw_h)
-        draw_annotations(c, draw_x, draw_y, draw_w, draw_h, data['annotations'])
+        c.rect(x_col1, draw_y + (draw_h - col1_h), col_w, col1_h)
 
-    else: # CEEC 01 Two Columns
-        col1_p = TMP / "ceec_col1_enhanced.png"
-        col2_p = TMP / "ceec_col2_enhanced.png"
-        col_w = (avail_w - 14) / 2
-        im1 = Image.open(col1_p)
-        draw_h = col_w * (im1.height / im1.width)
-        draw_h = min(draw_h, h - 140)
-        draw_y = h - 95 - draw_h
+        c.drawImage(str(TMP / data['img_col2']), x_col2, draw_y + (draw_h - col2_h), width=col_w, height=col2_h)
+        c.rect(x_col2, draw_y + (draw_h - col2_h), col_w, col2_h)
 
-        c.drawImage(str(col1_p), left, draw_y, width=col_w, height=draw_h)
-        c.drawImage(str(col2_p), left + col_w + 14, draw_y, width=col_w, height=draw_h)
-        c.setStrokeColor(colors.HexColor(BORDER_COLOR))
-        c.setLineWidth(0.8)
-        c.rect(left, draw_y, col_w, draw_h)
-        c.rect(left + col_w + 14, draw_y, col_w, draw_h)
-        draw_annotations(c, left, draw_y, avail_w, draw_h, data['annotations'])
+        # Draw CEEC Gold Badges
+        for num, x1, x2, y_rel, col, is_error, col_idx in data['anchors']:
+            base_x = x_col1 if col_idx == 1 else x_col2
+            curr_h = col1_h if col_idx == 1 else col2_h
+            curr_y = draw_y + (draw_h - curr_h)
 
-    # Bottom Folio
-    c.setFont('JH', 8)
-    c.setFillColor(colors.HexColor(TEXT_MUTED))
-    c.drawString(left, 24, '紅筆手寫處為教師個別診斷標註  ·  完整分項評量、修訂任務與反思請見背面')
-    c.setFont('GeorgiaBold', 9)
-    c.drawRightString(w - left, 24, 'PAGE 01 / 02')
+            px1 = base_x + x1 * col_w
+            px2 = base_x + x2 * col_w
+            py = curr_y + curr_h - y_rel * curr_h
+
+            c.setStrokeColor(colors.HexColor(col))
+            c.setLineWidth(1.2)
+            c.setDash(2, 2)
+            c.line(px1, py - 2, px2, py - 2)
+            c.setDash()
+
+            badge_x = px1 - 7
+            badge_y = py + 3
+            c.setFillColor(colors.HexColor(col))
+            c.circle(badge_x, badge_y, 6.5, fill=1, stroke=0)
+            c.setFillColor(colors.white)
+            c.setFont('GeorgiaBold', 7.5)
+            c.drawCentredString(badge_x, badge_y - 2.5, num)
+
+    # 2. Bottom Bento Box (The Diagnostic & Edit Box / Masterclass Box)
+    box_top = draw_y - 10
+    box_bottom = 25
+    box_h = box_top - box_bottom
+    box_w = avail_w
+
+    # Card Background
+    c.setFillColor(colors.HexColor(BG_LIGHT_GRAY))
+    c.roundRect(left, box_bottom, box_w, box_h, 6, fill=1, stroke=0)
+    c.setStrokeColor(colors.HexColor(BORDER_COLOR))
+    c.setLineWidth(0.8)
+    c.roundRect(left, box_bottom, box_w, box_h, 6, fill=0, stroke=1)
+
+    # Card Header Pill
+    c.setFillColor(colors.HexColor(DARK_PILL))
+    c.roundRect(left + 6, box_top - 20, box_w - 12, 17, 3, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('JHB', 8.5)
+
+    if not data['is_ceec']:
+        c.drawString(left + 12, box_top - 14, '【教師逐項精修便當盒】 (The Diagnostic & Edit Box)')
+        c.setFont('JH', 7)
+        c.drawRightString(left + box_w - 12, box_top - 14, '紅點/實線為文法硬性更正 | 藍點/虛線為修辭更佳建議（保留學生原意）')
+    else:
+        c.drawString(left + 12, box_top - 14, '【大考佳作大師賞析盒】 (Masterclass Highlights & Rhetorical Breakdown)')
+        c.setFont('JH', 7)
+        c.drawRightString(left + box_w - 12, box_top - 14, '金點標記為全國頂尖得獎亮點（倒裝句、感官沉浸、高階搭配詞與層次推進）')
+
+    # Table Assembly
+    style_orig = ParagraphStyle('Orig', fontName='GeorgiaBold', fontSize=8, leading=9.5, textColor=colors.HexColor(TEXT_DARK))
+    style_sol = ParagraphStyle('Sol', fontName='JH', fontSize=7.5, leading=9.5, textColor=colors.HexColor('#1E293B'))
+
+    table_data = [
+        [
+            Paragraph('<b>編號</b>', ParagraphStyle('TH', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED), alignment=1)),
+            Paragraph('<b>原文語句</b>' if not data['is_ceec'] else '<b>典範佳句摘錄</b>', ParagraphStyle('TH2', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED))),
+            Paragraph('<b>類別</b>' if not data['is_ceec'] else '<b>手法</b>', ParagraphStyle('TH3', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED), alignment=1)),
+            Paragraph('<b>精修建議與考點解析</b>' if not data['is_ceec'] else '<b>大考得分關鍵解析</b>', ParagraphStyle('TH4', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED)))
+        ]
+    ]
+
+    for item in data['edit_box']:
+        num_str, orig_txt, cat_txt, cat_col, sol_title, sol_desc = item
+        style_cat = ParagraphStyle('Cat', fontName='JHB', fontSize=7.5, leading=9, textColor=colors.HexColor(cat_col), alignment=1)
+        
+        row = [
+            Paragraph(f'<font color="{cat_col}"><b>{num_str}</b></font>', ParagraphStyle('NUM', fontName='JHB', fontSize=8.5, leading=9.5, alignment=1)),
+            Paragraph(orig_txt, style_orig),
+            Paragraph(cat_txt, style_cat),
+            Paragraph(f'<b>{sol_title}</b><br/><font color="#64748B">{sol_desc}</font>', style_sol)
+        ]
+        table_data.append(row)
+
+    col_w = [26, 110, 65, box_w - 26 - 110 - 65 - 12]
+    table = Table(table_data, colWidths=col_w)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, colors.HexColor(BORDER_COLOR)),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('LINEBELOW', (0, 1), (-1, -2), 0.5, colors.HexColor('#E2E8F0')),
+    ]))
+
+    tw, th = table.wrap(box_w - 12, box_h - 26)
+    table_y = box_top - 24 - th
+    table.drawOn(c, left + 6, table_y)
 
     c.save()
-    print(f"Rendered Page 1: {out_pdf_path.name}")
+    print(f"Page 1 rendered: {out_pdf_path.name}")
 
-def draw_annotations(c, nx, ny, nw, nh, annotations):
-    for a in annotations:
-        ay = ny + (1.0 - a['y']) * nh
-        t = a['type']
+# ==================== PAGE 2 RENDER ENGINE (BLEED SAFE & MONOCHROME) ====================
 
-        if t == 'bracket':
-            bx1 = nx + a['x1'] * nw
-            bx2 = nx + a['x2'] * nw
-            c.setStrokeColor(colors.HexColor(RED))
-            c.setLineWidth(1.4)
-            # Draw brackets [ and ]
-            c.line(bx1, ay - 3, bx1, ay + 12)
-            c.line(bx1, ay - 3, bx1 + 6, ay - 3)
-            c.line(bx1, ay + 12, bx1 + 6, ay + 12)
-            c.line(bx2, ay - 3, bx2, ay + 12)
-            c.line(bx2 - 6, ay - 3, bx2, ay - 3)
-            c.line(bx2 - 6, ay + 12, bx2, ay + 12)
-            # Red text above
-            c.setFont('Hand', 11.5)
-            c.setFillColor(colors.HexColor(RED))
-            c.drawString(bx1 + 10, ay + a.get('dy', 22), a['text'])
-
-        elif t == 'strike':
-            ax = nx + a['x'] * nw
-            aw = a['w'] * nw
-            c.setStrokeColor(colors.HexColor(RED))
-            c.setLineWidth(1.6)
-            c.line(ax, ay + 4, ax + aw, ay + 4) # Strikeout line
-            # Red text above
-            c.setFont('Hand', 11.5)
-            c.setFillColor(colors.HexColor(RED))
-            c.drawString(ax, ay + a.get('dy', 20), a['text'])
-            if 'tag' in a:
-                c.setFillColor(colors.HexColor(RED))
-                c.roundRect(ax - 25, ay + a.get('dy', 20) - 2, 22, 11, 2, fill=1, stroke=0)
-                c.setFillColor(colors.white)
-                c.setFont('Helvetica-Bold', 7)
-                c.drawString(ax - 23, ay + a.get('dy', 20) + 1.5, a['tag'])
-
-        elif t == 'caret':
-            cx = nx + a['x'] * nw
-            c.setStrokeColor(colors.HexColor(RED))
-            c.setLineWidth(1.5)
-            # Caret ^
-            c.line(cx - 4, ay - 2, cx, ay + 8)
-            c.line(cx, ay + 8, cx + 4, ay - 2)
-            # Red text above
-            c.setFont('Hand', 11.5)
-            c.setFillColor(colors.HexColor(RED))
-            c.drawString(cx - 10, ay + a.get('dy', 18), a['text'])
-
-# ==================== PAGE 2 ENGINE (ZONED & BLACK-AND-WHITE SAFE) ====================
-
-def render_page_2_zoned(data, out_pdf_path):
+def render_page_2_option_a(data, out_pdf_path):
     c = canvas.Canvas(str(out_pdf_path), pagesize=A4)
     w, h = A4
-    left = 40
-    width = w - 80
+    left = 45
+    avail_w = w - 90  # 505.28 pt strict safety margin
 
-    # Top Bar (Photocopier Friendly Dark Bar)
-    c.setStrokeColor(colors.HexColor(DARK_PILL))
-    c.setLineWidth(1.2)
-    c.line(left, h - 28, left + width, h - 28)
-    c.setFont('GeorgiaBold', 9.5)
+    # Header Ribbon
+    c.setFillColor(colors.HexColor(DARK_PILL))
+    c.rect(0, h - 8, w, 8, fill=1, stroke=0)
+    c.setFont('GeorgiaBold', 10)
     c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left, h - 22, 'THE WRITING EDIT  |  DIAGNOSTIC & REVISION REPORT')
+    c.drawString(left, h - 25, 'THE WRITING EDIT  |  LEARNING & REVISION WORKBENCH')
     c.setFont('JH', 8.5)
     c.setFillColor(colors.HexColor(TEXT_MUTED))
-    c.drawRightString(left + width, h - 22, '學測英文作文個人診斷與修訂歷程單 (背面)')
+    c.drawRightString(w - left, h - 25, '學測英文作文個人診斷與自主修訂反思 (第2頁)')
 
-    curr_y = h - 38
-
-    def draw_pill_badge(c, x, y, text, w_badge=220):
-        c.setFillColor(colors.HexColor(DARK_PILL))
-        c.roundRect(x, y - 16, w_badge, 17, 3, fill=1, stroke=0)
-        c.setFillColor(colors.white)
-        c.setFont('JHB', 9)
-        c.drawString(x + 8, y - 12.5, text)
-
-    # ==================== PART A ====================
-    part_a_h = 210
-    draw_pill_badge(c, left, curr_y, 'PART A  評分依據與教師評語', 190)
     c.setStrokeColor(colors.HexColor(BORDER_COLOR))
     c.setLineWidth(0.8)
-    c.roundRect(left, curr_y - part_a_h, width, part_a_h - 18, 4, fill=0, stroke=1)
+    c.line(left, h - 34, w - left, h - 34)
 
-    # Summary inside Part A
-    ay = curr_y - 28
-    c.setFont('JHB', 12)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left + 12, ay - 6, f"總分：{data['total']} / 20 分")
-    c.setFont('JH', 9.5)
-    c.drawString(left + 150, ay - 5, f"大考級距：{data['grade_tier']}")
-    c.drawRightString(left + width - 12, ay - 5, data['total_desc'])
+    # ---------------- PART A: 大考規準評分與教師評語 ----------------
+    cur_y = h - 42
+    
+    # Part A Pill Header
+    c.setFillColor(colors.HexColor(DARK_PILL))
+    c.roundRect(left, cur_y - 18, 230, 18, 3, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('JHB', 8.5)
+    c.drawString(left + 8, cur_y - 13, 'PART A | 大考規準評分與教師評語 (Assessment)')
+    
+    cur_y -= 24
 
-    # Rubric Table inside Part A
-    table_rows = [
-        [Paragraph('<b>分項評量指標</b>', ParagraphStyle('th1', fontName='JHB', fontSize=8.5, leading=11, textColor=colors.HexColor(TEXT_DARK))),
-         Paragraph('<b>得分</b>', ParagraphStyle('th2', fontName='JHB', fontSize=8.5, leading=11, alignment=1, textColor=colors.HexColor(TEXT_DARK))),
-         Paragraph('<b>大考中心評分依據與具體診斷</b>', ParagraphStyle('th3', fontName='JHB', fontSize=8.5, leading=11, textColor=colors.HexColor(TEXT_DARK)))]
+    # 3-Column Summary Table (Total | Tier | Word Count)
+    summary_data = [
+        [
+            Paragraph(f"<b>總分 (Total)</b>: <font color=\"#0F172A\"><b>{data['total']} / 20 分</b></font>", ParagraphStyle('Sum1', fontName='JH', fontSize=8, leading=9.5)),
+            Paragraph(f"<b>大考級距</b>: <font color=\"#0F172A\"><b>{data['grade_tier']}</b></font>", ParagraphStyle('Sum2', fontName='JH', fontSize=8, leading=9.5, alignment=1)),
+            Paragraph(f"<b>實測字數</b>: <font color=\"#0F172A\"><b>{data['words']} 字</b></font> ({'達標' if data['words']>=120 else '未達標'})", ParagraphStyle('Sum3', fontName='JH', fontSize=8, leading=9.5, alignment=2))
+        ]
     ]
-    for r_label, r_score, r_desc in data['scores']:
-        table_rows.append([
-            Paragraph(f"<b>{r_label}</b>", ParagraphStyle('rl', fontName='JH', fontSize=8.5, leading=11)),
-            Paragraph(f"<b>{r_score}</b>", ParagraphStyle('rs', fontName='GeorgiaBold', fontSize=9, alignment=1)),
-            Paragraph(r_desc, ParagraphStyle('rd', fontName='JH', fontSize=8, leading=11))
+    t_sum = Table(summary_data, colWidths=[150, 205, 150])
+    t_sum.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(BG_LIGHT_GRAY)),
+        ('BOX', (0, 0), (-1, -1), 0.8, colors.HexColor(BORDER_COLOR)),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    sw, sh = t_sum.wrap(avail_w, 30)
+    t_sum.drawOn(c, left, cur_y - sh)
+    cur_y -= (sh + 6)
+
+    # 4 Rubric Criteria Table
+    style_dim = ParagraphStyle('Dim', fontName='JHB', fontSize=7.5, leading=9, textColor=colors.HexColor(TEXT_DARK))
+    style_sc = ParagraphStyle('Sc', fontName='GeorgiaBold', fontSize=8, leading=9, textColor=colors.HexColor(TEXT_DARK), alignment=1)
+    style_ev = ParagraphStyle('Ev', fontName='JH', fontSize=7.5, leading=9, textColor=colors.HexColor(TEXT_MUTED))
+
+    rubric_data = [
+        [
+            Paragraph('<b>評量維度 (Rubrics)</b>', ParagraphStyle('RH1', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED))),
+            Paragraph('<b>得分</b>', ParagraphStyle('RH2', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED), alignment=1)),
+            Paragraph('<b>具體學習表現與大考徵狀分析</b>', ParagraphStyle('RH3', fontName='JHB', fontSize=7.5, leading=8.5, textColor=colors.HexColor(TEXT_MUTED)))
+        ]
+    ]
+    for dim, sc, ev in data['scores']:
+        rubric_data.append([
+            Paragraph(dim, style_dim),
+            Paragraph(f"{sc} / 5", style_sc),
+            Paragraph(ev, style_ev)
         ])
 
-    t = Table(table_rows, colWidths=[105, 45, width - 174])
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#F1F5F9')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor(BORDER_COLOR)),
-        ('TOPPADDING', (0,0), (-1,-1), 3),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
-        ('LEFTPADDING', (0,0), (-1,-1), 5),
-        ('RIGHTPADDING', (0,0), (-1,-1), 5),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    t_rubric = Table(rubric_data, colWidths=[110, 50, avail_w - 160])
+    t_rubric.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('BOX', (0, 0), (-1, -1), 0.8, colors.HexColor(BORDER_COLOR)),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 2.5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2.5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
     ]))
-    _, th = t.wrap(width - 24, 200)
-    t.drawOn(c, left + 12, ay - 14 - th)
+    rw, rh = t_rubric.wrap(avail_w, 100)
+    t_rubric.drawOn(c, left, cur_y - rh)
+    cur_y -= (rh + 6)
 
-    # Feedback inside Part A
-    f_y = ay - 20 - th
-    c.setFont('JHB', 9)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left + 12, f_y, '【教師評語】')
-    c.setFont('JH', 8.5)
-    c.drawString(left + 80, f_y, f"中文：{data['feedback_zh'][:56]}...")
-    c.drawString(left + 80, f_y - 12, f"英文：{data['feedback_en'][:70]}...")
+    # Teacher Comprehensive Feedback Box
+    fb_data = [
+        [
+            Paragraph(f"<b>【導師總評】</b> {data['feedback_zh']}<br/><font color=\"#475569\"><b>Teacher's Note:</b> {data['feedback_en']}</font>",
+                      ParagraphStyle('FB', fontName='JH', fontSize=7.5, leading=9.5, textColor=colors.HexColor(TEXT_DARK)))
+        ]
+    ]
+    t_fb = Table(fb_data, colWidths=[avail_w])
+    t_fb.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(BG_LIGHT_GRAY)),
+        ('BOX', (0, 0), (-1, -1), 0.8, colors.HexColor(BORDER_COLOR)),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    fw, fh = t_fb.wrap(avail_w, 60)
+    t_fb.drawOn(c, left, cur_y - fh)
+    cur_y -= (fh + 12)
 
-    curr_y -= (part_a_h + 12)
+    # ---------------- PART B: 學生自主修訂任務 ----------------
+    # Part B Pill Header
+    c.setFillColor(colors.HexColor(DARK_PILL))
+    c.roundRect(left, cur_y - 18, 250, 18, 3, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('JHB', 8.5)
+    c.drawString(left + 8, cur_y - 13, 'PART B | 學生自主修訂任務 (Personalized Tasks)')
+    
+    cur_y -= 24
 
-    # ==================== PART B ====================
-    part_b_h = 180
-    draw_pill_badge(c, left, curr_y, 'PART B  個別化修訂任務 (請於下方橫線直接訂正)', 280)
-    c.setStrokeColor(colors.HexColor(BORDER_COLOR))
-    c.setLineWidth(0.8)
-    c.roundRect(left, curr_y - part_b_h, width, part_b_h - 18, 4, fill=0, stroke=1)
-
-    by = curr_y - 30
-    for t_desc, num_lines in data['tasks']:
-        c.setFont('JHB', 8.5)
+    for t_idx, (t_desc, t_lines) in enumerate(data['tasks'], 1):
+        # Task title inside light pill
+        c.setFillColor(colors.HexColor('#F1F5F9'))
+        c.roundRect(left, cur_y - 14, avail_w, 14, 2, fill=1, stroke=0)
+        c.setStrokeColor(colors.HexColor(BORDER_COLOR))
+        c.setLineWidth(0.5)
+        c.roundRect(left, cur_y - 14, avail_w, 14, 2, fill=0, stroke=1)
+        
         c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.drawString(left + 12, by, t_desc)
-        by -= 14
-        for l_i in range(num_lines):
+        c.setFont('JHB', 7.5)
+        c.drawString(left + 6, cur_y - 10, t_desc)
+        cur_y -= 18
+
+        # Writing Lines (Ample spacing 24pt for student handwriting)
+        for line_i in range(t_lines):
             c.setStrokeColor(colors.HexColor(LINE_DOTTED))
-            c.setLineWidth(0.7)
+            c.setLineWidth(0.8)
             c.setDash(2, 2)
-            c.line(left + 12, by, left + width - 12, by)
+            c.line(left + 15, cur_y - 6, left + avail_w - 5, cur_y - 6)
             c.setDash()
-            by -= 18
-        by -= 6
+            
+            c.setFont('GeorgiaItalic', 7)
+            c.setFillColor(colors.HexColor('#94A3B8'))
+            c.drawString(left + 2, cur_y - 7, f"L{line_i+1}")
+            cur_y -= 24
+        cur_y -= 4
 
-    curr_y -= (part_b_h + 12)
+    cur_y -= 4
 
-    # ==================== PART C ====================
-    part_c_h = 240
-    draw_pill_badge(c, left, curr_y, 'PART C  學習歷程反思與教師核閱 (學習歷程檔案實作證明)', 320)
-    c.setStrokeColor(colors.HexColor(BORDER_COLOR))
-    c.setLineWidth(0.8)
-    c.roundRect(left, curr_y - part_c_h, width, part_c_h - 18, 4, fill=0, stroke=1)
+    # ---------------- PART C: 學習歷程與後設反思 ----------------
+    # Part C Pill Header
+    c.setFillColor(colors.HexColor(DARK_PILL))
+    c.roundRect(left, cur_y - 18, 240, 18, 3, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('JHB', 8.5)
+    c.drawString(left + 8, cur_y - 13, 'PART C | 學習歷程與後設反思 (Metacognition)')
 
-    cy = curr_y - 28
-    # Q1: Continuous Scale Slider Bar (No preset labels!)
-    c.setFont('JHB', 9)
+    cur_y -= 22
+
+    # Slider Scale Bar (Clean 1 to 5 circles, NO cluttering preset labels!)
+    c.setFont('JH', 7.5)
     c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left + 12, cy, '1. 本次寫作自我滿意度定位（請在 1～5 軸線上標記你對本次表現的感受位置）：')
-
-    bar_x = left + 45
-    bar_w = width - 90
-    bar_y = cy - 20
-    c.setStrokeColor(colors.HexColor('#94A3B8'))
-    c.setLineWidth(2)
-    c.line(bar_x, bar_y, bar_x + bar_w, bar_y)
-    for s_idx in range(5):
-        nx = bar_x + (bar_w / 4) * s_idx
-        c.setFillColor(colors.white)
+    c.drawString(left, cur_y, '本次寫作自我效能自評：')
+    
+    scale_x = left + 120
+    for s_i in range(1, 6):
+        cx = scale_x + (s_i - 1) * 70
+        cy = cur_y + 2
         c.setStrokeColor(colors.HexColor(DARK_PILL))
-        c.setLineWidth(1.2)
-        c.circle(nx, bar_y, 8, fill=1, stroke=1)
+        c.setLineWidth(1)
+        c.circle(cx, cy, 6, fill=0, stroke=1)
+        c.setFont('GeorgiaBold', 7.5)
         c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.setFont('GeorgiaBold', 9.5)
-        c.drawCentredString(nx, bar_y - 3.5, str(s_idx + 1))
+        c.drawCentredString(cx, cy - 2.5, str(s_i))
+        if s_i < 5:
+            c.setStrokeColor(colors.HexColor('#CBD5E1'))
+            c.setLineWidth(0.8)
+            c.line(cx + 8, cy, cx + 62, cy)
+            
+    c.setFont('JH', 7)
+    c.setFillColor(colors.HexColor(TEXT_MUTED))
+    c.drawRightString(left + avail_w, cur_y, '(1: 極不滿意  ←  自評量表  →  5: 非常滿意)')
 
-    cy -= 46
+    cur_y -= 14
 
-    # Q2: 4-Part Reflection Grid
-    c.setFont('JHB', 9)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left + 12, cy, '2. 學習歷程反思紀錄（請簡要填寫下列 4 個維度）：')
-    cy -= 10
+    # 2x2 Reflection Bento Grid
+    box_w = (avail_w - 8) / 2
+    box_h = 44
 
-    ref_w = (width - 32) / 2
-    ref_h = 58
-    boxes = [
-        (left + 12, cy - ref_h, '【本次作品亮點】這篇我寫得最好的一點是：'),
-        (left + 20 + ref_w, cy - ref_h, '【遭遇寫作卡點】最困擾我或花最多時間的是：'),
-        (left + 12, cy - ref_h*2 - 8, '【我的修訂策略】看過批改後，我具體修正了：'),
-        (left + 20 + ref_w, cy - ref_h*2 - 8, '【給下篇作文的一句話】下次動筆前我要提醒自己：')
+    prompts = [
+        ('【今日最有收穫的句型 / 單字】', left, cur_y - box_h),
+        ('【下次寫作一定要避開的盲區】', left + box_w + 8, cur_y - box_h),
+        ('【我覺得寫得最滿意的一句話】', left, cur_y - box_h * 2 - 6),
+        ('【教師簽章與評語 / 努力目標】', left + box_w + 8, cur_y - box_h * 2 - 6),
     ]
 
-    for bx, by_box, title in boxes:
+    for p_title, bx, by in prompts:
         c.setFillColor(colors.HexColor(BG_LIGHT_GRAY))
+        c.roundRect(bx, by, box_w, box_h, 3, fill=1, stroke=0)
         c.setStrokeColor(colors.HexColor(BORDER_COLOR))
         c.setLineWidth(0.6)
-        c.roundRect(bx, by_box, ref_w, ref_h, 3, fill=1, stroke=1)
-        c.setFont('JHB', 8)
+        c.roundRect(bx, by, box_w, box_h, 3, fill=0, stroke=1)
+
         c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.drawString(bx + 6, by_box + ref_h - 12, title)
-        # 2 writing lines inside box
+        c.setFont('JHB', 7)
+        c.drawString(bx + 6, by + box_h - 10, p_title)
+
+        # Dotted handwriting guide line
         c.setStrokeColor(colors.HexColor(LINE_DOTTED))
         c.setLineWidth(0.5)
         c.setDash(2, 2)
-        c.line(bx + 6, by_box + ref_h - 26, bx + ref_w - 6, by_box + ref_h - 26)
-        c.line(bx + 6, by_box + ref_h - 42, bx + ref_w - 6, by_box + ref_h - 42)
+        c.line(bx + 8, by + 12, bx + box_w - 8, by + 12)
         c.setDash()
 
-    # Q3: Teacher Verification & Stamp Row
-    stamp_y = cy - ref_h*2 - 28
-    c.setFont('JHB', 8.5)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(left + 12, stamp_y, '教師核閱章 / 簽名：____________________    修訂等級核定：[  ] 達標特優    [  ] 通過良好    [  ] 需再面談')
-    c.drawRightString(left + width - 12, stamp_y, '核閱日期：_____ 年 ___ 月 ___ 日')
-
-    # Bottom Folio
-    c.setFont('GeorgiaBold', 9)
+    # Footer Sign-off
+    c.setFont('JH', 7)
     c.setFillColor(colors.HexColor(TEXT_MUTED))
-    c.drawRightString(w - left, 22, 'PAGE 02 / 02')
+    c.drawString(left, 18, '評量標準完全依據教育部大考中心 (CEEC) 英文科閱卷評分規準 (Content / Organization / Grammar / Vocabulary)')
+    c.drawRightString(w - left, 18, 'THE WRITING EDIT • 高中職英文寫作雙軌診斷系統')
 
     c.save()
-    print(f"Rendered Page 2: {out_pdf_path.name}")
+    print(f"Page 2 rendered: {out_pdf_path.name}")
 
-# ==================== 1-PAGE SPOT-THE-ERROR WORKSHEET (STUDENT & TEACHER) ====================
+# ==================== COMBINE TO PRINTABLE 2-PAGE PDF ====================
 
-QUESTIONS_DATA = [
-    {
-        'num': 1,
-        'tag': '盲區 1：破句急救 (Sentence Fragment)',
-        'orig': 'The flower garden owner was heartbroken. Because thoughtless tourists destroyed his flowers.',
-        'diag': '【破綻診斷】Because 引導從屬子句，缺乏主要子句支撐不能單獨成句。大考閱卷嚴重扣分。',
-        'correct': '【標準改寫】The garden owner was heartbroken, because thoughtless tourists destroyed his flowers.（或改用 This was because...）',
-        'script': '【教師引導話術】「大家看第 1 題句首的 Because，從屬子句一定要依靠主要子句！改成逗號串接，秒救 1 分！」'
-    },
-    {
-        'num': 2,
-        'tag': '盲區 2：形似字抓漏 (Confusing Word Pair)',
-        'orig': 'Many visitors completely ignored the warning sigh that clearly said "Do not enter."',
-        'diag': '【破綻診斷】sigh 是「嘆氣」，告示牌必須拼寫為 sign。said 亦可精修為 reads。',
-        'correct': '【標準改寫】Many visitors completely ignored the warning sign that clearly read, "Do not enter."',
-        'script': '【教師引導話術】「看到 sigh 老師都要嘆氣了！告示牌是 sign，請大家把 g 與 n 的位置看清楚，大考常考！」'
-    },
-    {
-        'num': 3,
-        'tag': '盲區 3：假設法時態一致 (Subjunctive Mood)',
-        'orig': 'If I were the owner, I would feel angry because the blossoms are trampled by strangers.',
-        'diag': '【破綻診斷】前段已建立假設法（If I were..., I would feel...），想像情境下後方的 are 須改為 would be。',
-        'correct': '【標準改寫】If I were the owner, I would feel angry because the blossoms would be trampled by strangers.',
-        'script': '【教師引導話術】「你現在不是花園主人，這是虛擬情境，後面花朵被踩也要維持時態一致，用 would be！」'
-    },
-    {
-        'num': 4,
-        'tag': '盲區 4：中式直譯詞彙升級 (Collocation Upgrade)',
-        'orig': 'Those selfish tourists have no public manners and they just want to take pictures for internet.',
-        'diag': '【破綻診斷】public manners 屬中式直譯，宜改為 good manners 或 civic decency；for internet 應為 for social media。',
-        'correct': '【標準改寫】Those selfish tourists showed no respect for rules and only cared about taking photos for social media.',
-        'script': '【教師引導話術】「『公德心』不要直接翻 public manners！用 respect for rules 或 civic decency 更道地！」'
-    },
-    {
-        'num': 5,
-        'tag': '盲區 5：消除機械式重複句型 (Repetitive Sentence Starters)',
-        'orig': 'I would feel sad because the flowers were ruined. I would also feel angry because people broke the rules.',
-        'diag': '【破綻診斷】連續兩句重複「I would feel... because...」，語氣機械單調，缺乏段落層次感。',
-        'correct': '【標準改寫】On the one hand, I would be heartbroken by the ruined flowers; on the other hand, I would feel angry at the rule-breaking.',
-        'script': '【教師引導話術】「連用兩次 I would feel... because 讀起來太生硬！善用 On the one hand... on the other hand 展現對比層次！」'
-    }
-]
+def combine_to_print_pdf(p1_path, p2_path, out_path):
+    writer = PdfWriter()
+    r1 = PdfReader(str(p1_path))
+    r2 = PdfReader(str(p2_path))
+    writer.add_page(r1.pages[0])
+    writer.add_page(r2.pages[0])
+    with open(out_path, 'wb') as f:
+        writer.write(f)
+    print(f"Combined 2-Page Print PDF created: {out_path.name}")
 
-def render_worksheet_master(is_teacher=False, out_path=None):
-    c = canvas.Canvas(str(out_path), pagesize=A4)
+# ==================== SPOT-THE-ERROR WORKSHEETS ====================
+
+def build_worksheet_option_a(exam_year, exam_topic, is_teacher, out_pdf_path):
+    c = canvas.Canvas(str(out_pdf_path), pagesize=A4)
     w, h = A4
     left = 45
-    width = w - 90  # 45pt safety margins on both sides!
+    avail_w = w - 90
 
-    # Top Ribbon
-    c.setFillColor(colors.HexColor(GREEN))
+    # Header Ribbon
+    tag = "【教用解答解析版】" if is_teacher else "【學生課堂練習版】"
+    c.setFillColor(colors.HexColor(DARK_PILL))
     c.rect(0, h - 8, w, 8, fill=1, stroke=0)
-    c.setFont('GeorgiaBold', 9)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.drawString(left, h - 25, 'THE WRITING EDIT  |  CLASSROOM SPOT-THE-ERROR CHALLENGE')
+
+    c.setFont('GeorgiaBold', 10)
+    c.setFillColor(colors.HexColor(TEXT_DARK))
+    c.drawString(left, h - 25, 'THE WRITING EDIT  |  SPOT THE ERRORS WORKBENCH')
     c.setFont('JH', 8.5)
     c.setFillColor(colors.HexColor(TEXT_MUTED))
-    lbl = '【教師解答與引導版】Teacher Answer Key' if is_teacher else '【學生隨堂練習版】Student Practice Worksheet'
-    c.drawRightString(w - left, h - 25, f"110 學測英文作文  |  {lbl}")
+    c.drawRightString(w - left, h - 25, f"{exam_year} 學測英文作文課堂微講義")
 
-    # Title
-    c.setFont('JHB', 16)
+    c.setFont('JHB', 15)
     c.setFillColor(colors.HexColor(TEXT_DARK))
-    t_text = '英文作文「大家來找碴」：全班高頻破綻挑錯微講義' + (' (教師解析版)' if is_teacher else ' (學生練習版)')
-    c.drawString(left, h - 46, t_text)
-    c.setFont('JH', 9.5)
+    c.drawString(left, h - 50, f"大家來找碴：{exam_year} 學測寫作五大集體盲區微講義 {tag}")
+    c.setFont('JH', 8.5)
     c.setFillColor(colors.HexColor(TEXT_MUTED))
-    c.drawString(left, h - 60, '以下 5 個句子均來自真實學生學測模擬考原稿。請仔細觀察，找出破綻並重新改寫符合大考要求的句子。')
+    c.drawString(left, h - 65, f"作文主題：{exam_topic}  |  請診斷下方五句大考學生原稿句，圈出錯誤並於空白處完成修訂")
+
+    # Student metadata box on top right
+    if not is_teacher:
+        c.setFont('JH', 8.5)
+        c.setFillColor(colors.HexColor(TEXT_DARK))
+        c.drawRightString(w - left - 100, h - 50, '班級：________  座號：____  姓名：____________')
 
     c.setStrokeColor(colors.HexColor(BORDER_COLOR))
     c.setLineWidth(0.8)
-    c.line(left, h - 68, w - left, h - 68)
+    c.line(left, h - 75, w - left, h - 75)
 
-    curr_y = h - 80
+    cur_y = h - 88
 
-    for q in QUESTIONS_DATA:
-        # Question Tag Badge
-        tag_col = RED if is_teacher else DARK_PILL
-        c.setFillColor(colors.HexColor(tag_col))
-        c.roundRect(left, curr_y - 14, 180, 16, 2, fill=1, stroke=0)
-        c.setFillColor(colors.white)
-        c.setFont('JHB', 8.5)
-        c.drawString(left + 6, curr_y - 11.5, q['tag'])
-
-        c.setFont('GeorgiaBold', 10.5)
-        c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.drawString(left + 190, curr_y - 11, f"Question 0{q['num']}")
-        curr_y -= 20
-
-        # Original Sentence Box
-        c.setFillColor(colors.HexColor(BG_LIGHT_GRAY))
-        c.setStrokeColor(colors.HexColor(BORDER_COLOR))
-        c.roundRect(left, curr_y - 24, width, 22, 3, fill=1, stroke=1)
-        c.setFont('Georgia', 10.5)
-        c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.drawString(left + 8, curr_y - 16, f"原句：\"{q['orig']}\"")
-        curr_y -= 28
-
-        if is_teacher:
-            # Teacher Key & Script
-            c.setFont('JHB', 9)
-            c.setFillColor(colors.HexColor(RED))
-            c.drawString(left, curr_y - 10, q['diag'])
-            curr_y -= 14
-
-            c.setFillColor(colors.HexColor(GREEN))
-            c.drawString(left, curr_y - 10, q['correct'])
-            curr_y -= 14
-
-            c.setFont('JH', 8.5)
-            c.setFillColor(colors.HexColor(BLUE))
-            c.drawString(left, curr_y - 10, q['script'])
-            curr_y -= 18
-
-        else:
-            # Student Writing Lines (Font 11pt, Spacious 24pt Writing Lines!)
-            # NO EMOJIS! Clean typographical brackets
-            c.setFont('JHB', 10.5)
-            c.setFillColor(colors.HexColor(TEXT_DARK))
-            c.drawString(left, curr_y - 10, '【破綻診斷】找出原句語法或用詞問題：')
-            curr_y -= 26
-            c.setStrokeColor(colors.HexColor(LINE_DOTTED))
-            c.setLineWidth(0.6)
-            c.setDash(2, 2)
-            c.line(left + 10, curr_y + 8, w - left, curr_y + 8)
-            c.setDash()
-
-            c.setFont('JHB', 10.5)
-            c.setFillColor(colors.HexColor(TEXT_DARK))
-            c.drawString(left, curr_y - 8, '【精修改寫】重新寫出正確流暢之完整句子：')
-            curr_y -= 26
-            c.setStrokeColor(colors.HexColor(LINE_DOTTED))
-            c.setLineWidth(0.6)
-            c.setDash(2, 2)
-            c.line(left + 10, curr_y + 8, w - left, curr_y + 8)
-            c.setDash()
-            curr_y -= 4
-
-        if q['num'] < 5:
-            c.setStrokeColor(colors.HexColor('#E2E8F0'))
-            c.setLineWidth(0.5)
-            c.line(left, curr_y + 4, w - left, curr_y + 4)
-            curr_y -= 8
-
-    # Bottom Folio
-    c.setStrokeColor(colors.HexColor(TEXT_DARK))
-    c.setLineWidth(0.6)
-    c.line(left, 30, w - left, 30)
-    c.setFont('JH', 8.5)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    if is_teacher:
-        c.drawString(left, 16, '教師備課指引  ·  適合於投影簡報檢討後，帶全班進行 5~10 分鐘黑板互動隨堂帶練。')
-        c.setFont('GeorgiaBold', 9)
-        c.drawRightString(w - left, 16, 'TEACHER KEY  ·  PAGE 01 / 01')
+    # 5 Real Sentences from Student Essays
+    if exam_year == '111':
+        items = [
+            (
+                "盲區 1：詞性混淆（動詞與形容詞錯置）",
+                "Differ parks have vary features for children to play.",
+                "Different parks have various features for children to play.",
+                "differ 為動詞，修飾名詞 parks 必須改用形容詞 different；同理 vary 亦為動詞，應修為 various。"
+            ),
+            (
+                "盲區 2：主詞動詞不一致（單數動詞漏加 -s）",
+                "Picture A have more facilities, which is popular with kids.",
+                "Picture A has more facilities, which are popular with kids.",
+                "主詞 Picture A 為第三人稱單數，現在式動詞應為 has；後方關代 which 指先行詞 facilities，be 動詞應用 are。"
+            ),
+            (
+                "盲區 3：助動詞與形容詞疊用（漏補原形 be）",
+                "If the government builds more trees, it will very cool in summer.",
+                "If the government plants more trees, it will be very cool in summer.",
+                "will 後方接形容詞 cool，必須補上原形動詞 be；另外「種樹」慣用 plant trees，不用 build trees。"
+            ),
+            (
+                "盲區 4：中式思維逐字直譯（缺乏地道英語慣用語）",
+                "Along with my ages going up, my preferences have changed a lot.",
+                "As I grew older, my preferences changed a lot.",
+                "中文「隨著年齡增長」切勿直譯為 ages going up，地道英文慣用 as I grew older。"
+            ),
+            (
+                "盲區 5：動賓搭配詞不自然（強行英譯）",
+                "People can take a picnic and make exercises under the big trees.",
+                "People can have a picnic and exercise [work out] under the big trees.",
+                "野餐之最道地搭配詞為 have a picnic / go on a picnic；做運動為 exercise 或 do exercise，不用 make。"
+            )
+        ]
     else:
-        c.drawString(left, 16, '班級：________ 座號：____ 姓名：____________  得分：______ / 5  教師簽章：____________')
-        c.setFont('GeorgiaBold', 9)
-        c.drawRightString(w - left, 16, 'STUDENT PRACTICE  ·  PAGE 01 / 01')
+        items = [
+            (
+                "盲區 1：形似字混淆與重大筆誤",
+                "The owner set up a sigh to warn tourists not to destory flowers.",
+                "The owner set up a sign to warn tourists not to destroy flowers.",
+                "sigh 為「嘆氣」，告示牌應為 sign；另 destroy (破壞) 為高頻大考字，常誤拼為 destory。"
+            ),
+            (
+                "盲區 2：破句與殘缺子句（Sentence Fragment）",
+                "Because this place means a lot to me. I was completely heartbroken.",
+                "Because this place means a lot to me, I was completely heartbroken.",
+                "Because 引導的是副詞從屬子句，不能獨立句點成句，必須用逗號與主句連接。"
+            ),
+            (
+                "盲區 3：主句主要動詞遺漏（欠缺 be 動詞）",
+                "Seeing the crushed blossoms, the farmer heartbroken and angry.",
+                "Seeing the crushed blossoms, the farmer was heartbroken and angry.",
+                "分詞構句後的主句中，heartbroken 為形容詞，必須補上主要動詞 was。"
+            ),
+            (
+                "盲區 4：假設法條件句時態混亂",
+                "If I were the owner, I were so angry that I would close the garden.",
+                "If I were the owner, I would be so angry that I would close the garden.",
+                "與現在事實相反的假設法，條件句用 were，主要子句助動詞應使用 would + 原形動詞 be。"
+            ),
+            (
+                "盲區 5：平行結構不對稱（Not only... but also... 殘缺）",
+                "Visitors come not only for taking pictures, but also destroy plants.",
+                "Visitors come not only to take pictures, but also to destroy plants [crush blossoms].",
+                "Not only 與 but also 後方接續之文法結構必須嚴格平行對稱（同為不定詞片語或介系詞片語）。"
+            )
+        ]
 
-    c.save()
-    print(f"Saved Worksheet: {out_path.name}")
-
-# ==================== 16:9 CLASSROOM SLIDES (HIGH-CONTRAST & LARGE PROJECTOR FONTS) ====================
-
-def render_slides_master(out_path):
-    c = canvas.Canvas(str(out_path), pagesize=(SLIDE_W, SLIDE_H))
-
-    def draw_slide_top(slide_num, title_zh, category_tag):
-        c.setFillColor(colors.HexColor(GREEN))
-        c.rect(0, SLIDE_H - 10, SLIDE_W, 10, fill=1, stroke=0)
-        c.setFont('GeorgiaBold', 12)
-        c.setFillColor(colors.HexColor(GREEN))
-        c.drawString(50, SLIDE_H - 35, 'THE WRITING EDIT  |  CLASSROOM DIAGNOSTIC SLIDES')
-        c.setFont('JH', 11)
-        c.setFillColor(colors.HexColor(TEXT_MUTED))
-        c.drawRightString(SLIDE_W - 50, SLIDE_H - 35, '110 學測英文作文  |  全班三大集體盲區深度剖析')
-
-        c.setFillColor(colors.HexColor(RED))
-        c.roundRect(50, SLIDE_H - 85, 130, 28, 4, fill=1, stroke=0)
-        c.setFillColor(colors.white)
-        c.setFont('JHB', 14)
-        c.drawCentredString(115, SLIDE_H - 77, category_tag)
-
-        c.setFillColor(colors.HexColor(TEXT_DARK))
-        c.setFont('JHB', 28)
-        c.drawString(195, SLIDE_H - 80, title_zh)
-
+    box_h = 132 if not is_teacher else 132
+    for idx, (b_title, orig_s, corr_s, exp_s) in enumerate(items, 1):
+        # Container Card
+        c.setFillColor(colors.HexColor(BG_LIGHT_GRAY))
+        c.roundRect(left, cur_y - box_h, avail_w, box_h, 4, fill=1, stroke=0)
         c.setStrokeColor(colors.HexColor(BORDER_COLOR))
         c.setLineWidth(0.8)
-        c.line(50, 42, SLIDE_W - 50, 42)
-        c.setFont('JH', 11)
-        c.setFillColor(colors.HexColor(TEXT_MUTED))
-        c.drawString(50, 24, '高中英文寫作診斷課堂專用  |  大考中心 108 課綱評分規準對齊')
-        c.setFont('GeorgiaBold', 12)
-        c.drawRightString(SLIDE_W - 50, 24, f"SLIDE {slide_num:02d} / 05")
+        c.roundRect(left, cur_y - box_h, avail_w, box_h, 4, fill=0, stroke=1)
 
-    # Slide 1: Cover
-    c.setFillColor(colors.HexColor('#0F172A')) # Deep rich slate
-    c.rect(0, 0, SLIDE_W, SLIDE_H, fill=1, stroke=0)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.rect(0, SLIDE_H - 12, SLIDE_W, 12, fill=1, stroke=0)
-    c.rect(60, SLIDE_H - 145, 8, 115, fill=1, stroke=0)
-
-    c.setFont('GeorgiaBold', 18)
-    c.setFillColor(colors.HexColor('#94A3B8'))
-    c.drawString(85, SLIDE_H - 135, 'THE WRITING EDIT  |  CLASSROOM DIAGNOSTIC SUITE')
-    c.setFont('JHB', 40)
-    c.setFillColor(colors.white)
-    c.drawString(85, SLIDE_H - 190, '110 學測英文作文：全班三大集體盲區剖析')
-    c.setFont('JH', 18)
-    c.setFillColor(colors.HexColor('#CBD5E1'))
-    c.drawString(85, SLIDE_H - 230, '從學生真實手寫原稿出發，突破「破句、形似字、空泛敘述」三大常見痛點')
-
-    card_w = (SLIDE_W - 120 - 40) / 3
-    card_y = 100
-    card_h = 145
-    cards = [
-        ("盲區 1：語法破句", "Because 從屬子句獨立成句", "破句 (Sentence Fragment)\n大考閱卷每出現一次重扣 1 分"),
-        ("盲區 2：字彙混淆", "sigh 與中式直譯 public manners", "sigh (嘆氣) vs. sign (告示牌)\n搭配詞缺乏道地語感"),
-        ("盲區 3：細節空泛", "第一段缺乏感官實景細節", "40 字草草帶過現場畫面\n缺乏 Show, Don't Tell 鏡頭感")
-    ]
-    for idx, (head, sub, desc) in enumerate(cards):
-        cx = 60 + idx * (card_w + 20)
-        c.setFillColor(colors.HexColor('#1E293B'))
-        c.roundRect(cx, card_y, card_w, card_h, 8, fill=1, stroke=0)
-        c.setFillColor(colors.HexColor('#38BDF8'))
-        c.setFont('JHB', 16)
-        c.drawString(cx + 20, card_y + card_h - 30, head)
-        c.setFillColor(colors.white)
-        c.setFont('JHB', 16)
-        c.drawString(cx + 20, card_y + card_h - 60, sub)
-        c.setFillColor(colors.HexColor('#94A3B8'))
-        c.setFont('JH', 13)
-        for line_i, line_t in enumerate(desc.split('\n')):
-            c.drawString(cx + 20, card_y + card_h - 95 - line_i * 24, line_t)
-
-    c.setFont('JH', 13)
-    c.setFillColor(colors.HexColor('#64748B'))
-    c.drawRightString(SLIDE_W - 60, 50, '高中英文寫作專題  |  課堂檢討指引')
-    c.showPage()
-
-    # Slide 2: Blind Spot 1
-    draw_slide_top(2, '盲區 1：從屬連接詞 Because 獨立成句（破句）', '文法致命傷')
-    box_w = 415
-
-    # Left Box (Error)
-    c.setFillColor(colors.HexColor('#FEF2F2'))
-    c.setStrokeColor(colors.HexColor('#F87171'))
-    c.setLineWidth(1.2)
-    c.roundRect(50, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(RED))
-    c.drawString(70, 395, '【學生原稿真實破綻】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(70, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(RED))
-    c.line(70, 290, 70, 380)
-    c.setFont('GeorgiaBold', 18)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(85, 345, '"...making the space owners feel angry.')
-    c.setFont('GeorgiaBold', 20)
-    c.setFillColor(colors.HexColor(RED))
-    c.drawString(85, 312, 'Because this place means a lot to me."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(70, 255, '【盲區診斷】：')
-    c.setFont('JH', 15)
-    c.drawString(70, 225, '1. Because 為從屬連接詞，無法單獨支撐句子。')
-    c.drawString(70, 195, '2. 犯下「破句 (Sentence Fragment)」大忌。')
-    c.drawString(70, 165, '3. 大考閱卷評分直接扣減文法分 1~2 分。')
-
-    # Right Box (High-Scoring Solution)
-    c.setFillColor(colors.HexColor('#F0FDF4'))
-    c.setStrokeColor(colors.HexColor('#4ADE80'))
-    c.setLineWidth(1.2)
-    c.roundRect(495, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.drawString(515, 395, '【高分精修策略】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(515, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(GREEN))
-    c.line(515, 290, 515, 380)
-    c.setFont('GeorgiaBold', 18)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(530, 345, '"...making the space owners feel angry,')
-    c.setFont('GeorgiaBold', 20)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.drawString(530, 312, 'as this place means a lot to me."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(515, 255, '【精修對策】：')
-    c.setFont('JH', 15)
-    c.drawString(515, 225, '解法 A：以逗號串接，改為複合句。')
-    c.drawString(515, 195, '解法 B：獨立成句時改用「This is because...」。')
-    c.drawString(515, 165, '解法 C：改用「Therefore,」或「As a result,」。')
-    c.showPage()
-
-    # Slide 3: Blind Spot 2
-    draw_slide_top(3, '盲區 2：形似字混淆與中式直譯詞彙', '用詞地道度')
-
-    # Left Box
-    c.setFillColor(colors.HexColor('#FEF2F2'))
-    c.setStrokeColor(colors.HexColor('#F87171'))
-    c.setLineWidth(1.2)
-    c.roundRect(50, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(RED))
-    c.drawString(70, 395, '【學生原稿常見地雷】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(70, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(RED))
-    c.line(70, 290, 70, 380)
-    c.setFont('GeorgiaBold', 18)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(85, 345, '1. "...might not notice the sigh that says..."')
-    c.drawString(85, 312, '2. "...they have no public manners."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(70, 255, '【盲區診斷】：')
-    c.setFont('JH', 15)
-    c.drawString(70, 225, '1. sigh 是「嘆氣」，告示牌必須是 sign。')
-    c.drawString(70, 195, '2. public manners 屬中式直譯，非母語搭配。')
-    c.drawString(70, 165, '3. 連續出現會讓閱卷老師判定詞彙匱乏。')
-
-    # Right Box
-    c.setFillColor(colors.HexColor('#F0FDF4'))
-    c.setStrokeColor(colors.HexColor('#4ADE80'))
-    c.setLineWidth(1.2)
-    c.roundRect(495, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.drawString(515, 395, '【母語級地道升級】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(515, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(GREEN))
-    c.line(515, 290, 515, 380)
-    c.setFont('GeorgiaBold', 18)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(530, 345, '1. "...ignored the warning sign reading..."')
-    c.drawString(530, 312, '2. "...exhibited no civic decency / etiquette."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(515, 255, '【精修對策】：')
-    c.setFont('JH', 15)
-    c.drawString(515, 225, '升級 1：告示牌 + 分詞 reading（道地美式）。')
-    c.drawString(515, 195, '升級 2：公德心 ➔ civic decency 或 good manners。')
-    c.drawString(515, 165, '升級 3：動詞升級：notice ➔ ignore / overlook。')
-    c.showPage()
-
-    # Slide 4: Blind Spot 3
-    draw_slide_top(4, '盲區 3：第一段細節空泛，缺乏畫面感', '感官鏡頭感')
-
-    # Left Box
-    c.setFillColor(colors.HexColor('#FEF2F2'))
-    c.setStrokeColor(colors.HexColor('#F87171'))
-    c.setLineWidth(1.2)
-    c.roundRect(50, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(RED))
-    c.drawString(70, 395, '【乾癟敘事（僅 40 字）】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(70, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(RED))
-    c.line(70, 290, 70, 380)
-    c.setFont('GeorgiaBold', 17)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(85, 345, '"In the picture, we see people in flowers.')
-    c.drawString(85, 312, 'They walk into flower field and step on flowers."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(70, 255, '【盲區診斷】：')
-    c.setFont('JH', 15)
-    c.drawString(70, 225, '1. 連續重複 flowers 三次，詞彙貧乏。')
-    c.drawString(70, 195, '2. 僅客觀陳述「走進去」，未描寫動作原因。')
-    c.drawString(70, 165, '3. 閱卷老師無法感受現場花圃被破壞的痛心。')
-
-    # Right Box
-    c.setFillColor(colors.HexColor('#F0FDF4'))
-    c.setStrokeColor(colors.HexColor('#4ADE80'))
-    c.setLineWidth(1.2)
-    c.roundRect(495, 105, box_w, 325, 8, fill=1, stroke=1)
-
-    c.setFont('JHB', 20)
-    c.setFillColor(colors.HexColor(GREEN))
-    c.drawString(515, 395, '【Show, Don\'t Tell 畫面升級】')
-
-    c.setFillColor(colors.white)
-    c.roundRect(515, 290, box_w - 40, 90, 6, fill=1, stroke=0)
-    c.setStrokeColor(colors.HexColor(GREEN))
-    c.line(515, 290, 515, 380)
-    c.setFont('GeorgiaBold', 17)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(530, 345, '"Eager for snapshots, tourists ruthlessly')
-    c.drawString(530, 312, 'trampled delicate petals underfoot."')
-
-    c.setFont('JHB', 16)
-    c.setFillColor(colors.HexColor(TEXT_DARK))
-    c.drawString(515, 255, '【精修對策】：')
-    c.setFont('JH', 15)
-    c.drawString(515, 225, '策略 1：補足動機（Eager for snapshots）。')
-    c.drawString(515, 195, '策略 2：強烈動詞替換（step on ➔ trample）。')
-    c.drawString(515, 165, '策略 3：感官受詞（flowers ➔ delicate petals）。')
-    c.showPage()
-
-    # Slide 5: Summary Action Plan
-    draw_slide_top(5, '課堂總結：學測英文作文突破 15+ 分三大鐵律', '實戰行動指南')
-
-    card_y = 110
-    card_h = 310
-    c_w = (SLIDE_W - 100 - 40) / 3
-
-    steps = [
-        ("鐵律 1：語法嚴格校對", "文法是分數基石", "1. 寫完務必檢查句首！\n嚴禁 Because/Although 獨立成句。\n2. 動詞時態前後一致，特別是假設法。\n3. 連接詞與逗號不混用。"),
-        ("鐵律 2：中式直譯降噪", "精準母語搭配詞", "1. 拋棄 public manners，用 good manners。\n2. 拋棄 Because of that，用 Therefore。\n3. 告示牌用 sign reading，不用 say。"),
-        ("鐵律 3：感官畫面深耕", "Show, Don't Tell", "1. 描摹首段實景至少 70~80 字。\n2. 描寫動態動作與受害花瓣。\n3. 結尾昇華公德心與同理心。")
-    ]
-
-    for idx, (title, sub, body) in enumerate(steps):
-        cx = 50 + idx * (c_w + 20)
-        c.setFillColor(colors.HexColor('#F8FAFC'))
-        c.setStrokeColor(colors.HexColor(DARK_PILL))
-        c.setLineWidth(1.2)
-        c.roundRect(cx, card_y, c_w, card_h, 8, fill=1, stroke=1)
-
+        # Title Pill
         c.setFillColor(colors.HexColor(DARK_PILL))
-        c.roundRect(cx, card_y + card_h - 40, c_w, 40, 4, fill=1, stroke=0)
+        c.roundRect(left + 8, cur_y - 20, 260, 16, 2, fill=1, stroke=0)
         c.setFillColor(colors.white)
-        c.setFont('JHB', 16)
-        c.drawCentredString(cx + c_w/2, card_y + card_h - 26, title)
+        c.setFont('JHB', 8)
+        c.drawString(left + 14, cur_y - 15, f"第 {idx} 題｜{b_title}")
 
-        c.setFillColor(colors.HexColor(GREEN))
-        c.setFont('JHB', 15)
-        c.drawString(cx + 16, card_y + card_h - 65, sub)
+        # Content Table with ZERO glyph bugs!
+        # Explicitly separate Chinese label in JHB and English quote in Georgia!
+        p_orig = Paragraph(
+            f'<font name=\"JHB\" color=\"#0F172A\">【原句診斷】</font> <font name=\"GeorgiaBold\" color=\"#BC1632\">\"{orig_s}\"</font>',
+            ParagraphStyle('OrigW', fontSize=8, leading=10)
+        )
 
-        c.setFont('JH', 13.5)
-        c.setFillColor(colors.HexColor(TEXT_DARK))
-        for l_i, l_t in enumerate(body.split('\n')):
-            c.drawString(cx + 16, card_y + card_h - 95 - l_i * 26, l_t)
+        if not is_teacher:
+            p_action = Paragraph(
+                '<font name=\"JHB\" color=\"#475569\">【請挑出錯誤並於下方整句重寫】：</font>',
+                ParagraphStyle('ActW', fontSize=7.5, leading=9)
+            )
+            content_data = [[p_orig], [p_action]]
+            t_box = Table(content_data, colWidths=[avail_w - 20])
+            t_box.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 2),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            bw, bh = t_box.wrap(avail_w - 20, 40)
+            t_box.drawOn(c, left + 10, cur_y - 24 - bh)
+
+            # Two generous dotted lines for student handwriting
+            line1_y = cur_y - 24 - bh - 20
+            line2_y = line1_y - 24
+
+            c.setStrokeColor(colors.HexColor(LINE_DOTTED))
+            c.setLineWidth(0.8)
+            c.setDash(2, 2)
+            c.line(left + 20, line1_y, left + avail_w - 12, line1_y)
+            c.line(left + 20, line2_y, left + avail_w - 12, line2_y)
+            c.setDash()
+
+            c.setFont('GeorgiaItalic', 7)
+            c.setFillColor(colors.HexColor('#94A3B8'))
+            c.drawString(left + 8, line1_y - 1, '1.')
+            c.drawString(left + 8, line2_y - 1, '2.')
+
+        else:
+            p_corr = Paragraph(
+                f'<font name=\"JHB\" color=\"#0F172A\">【精修解答】</font> <font name=\"GeorgiaBold\" color=\"#006A4E\">\"{corr_s}\"</font>',
+                ParagraphStyle('CorrW', fontSize=8, leading=10)
+            )
+            p_exp = Paragraph(
+                f'<font name=\"JHB\" color=\"#0F172A\">【大考考點解析】</font> <font name=\"JH\" color=\"#334155\">{exp_s}</font>',
+                ParagraphStyle('ExpW', fontSize=7.5, leading=9.5)
+            )
+            content_data = [[p_orig], [p_corr], [p_exp]]
+            t_box = Table(content_data, colWidths=[avail_w - 20])
+            t_box.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('TOPPADDING', (0, 0), (-1, -1), 2),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            bw, bh = t_box.wrap(avail_w - 20, 95)
+            t_box.drawOn(c, left + 10, cur_y - 24 - bh)
+
+        cur_y -= (box_h + 8)
+
+    # Footer
+    c.setFont('JH', 7)
+    c.setFillColor(colors.HexColor(TEXT_MUTED))
+    c.drawString(left, 18, f"THE WRITING EDIT • {exam_year} 學測英文作文挑錯微講義")
+    c.drawRightString(w - left, 18, '© 高中職英文寫作實戰微課程')
 
     c.save()
-    print(f"Saved Slides PDF: {out_path.name}")
+    print(f"Worksheet rendered: {out_pdf_path.name}")
 
-# ==================== SLIDES HTML BUILDER ====================
+# ==================== 16:9 CLASSROOM SLIDES ====================
 
-def render_slides_html(out_path):
-    html_content = """<!DOCTYPE html>
+def build_slides_option_a(exam_year, exam_topic, out_pdf_path, out_html_path):
+    c = canvas.Canvas(str(out_pdf_path), pagesize=(SLIDE_W, SLIDE_H))
+
+    if exam_year == '111':
+        slide_items = [
+            ("盲區 1：詞性錯置（動詞當形容詞）", "Differ parks have vary features...", "Different parks have various features...", "修飾名詞必須嚴格使用形容詞！differ/vary 皆為動詞，大考閱卷必扣文法分。"),
+            ("盲區 2：主謂不一致與漏原形動詞", "Picture A have more facilities... it will very cool.", "Picture A has more facilities... it will be very cool.", "第三人稱單數動詞加 -s！will 助動詞後方接形容詞時，永遠必須補上原形 be！"),
+            ("盲區 3：中式直譯與搭配詞破綻", "Along with my ages going up, people take a picnic...", "As I grew older, people have a picnic...", "戒除逐字英譯！英文表達年齡增長為 as I grew older；野餐地道動詞為 have a picnic。")
+        ]
+    else:
+        slide_items = [
+            ("盲區 1：形似字混淆與破句（Fragment）", "The owner set a sigh... Because this place means...", "The owner set a sign... Because this place means..., I was...", "告示牌是 sign (sigh是嘆氣)！Because 從屬子句絕不可單獨成句，必須連主句！"),
+            ("盲區 2：主要子句漏動詞與假設法時態", "The farmer heartbroken... If I were him, I were angry...", "The farmer was heartbroken... If I were him, I would be angry...", "heartbroken 是形容詞，主句必補 was！假設法與現在事實相反，主句用 would + V！"),
+            ("盲區 3：平行結構不對稱", "Visitors come not only for taking pictures, but destroy...", "Visitors come not only to take pictures, but also to protect...", "Not only 與 but also 後方詞性結構必須嚴格對稱！不定詞對不定詞、介系詞對介系詞！")
+        ]
+
+    # Slide 1: Cover Slide
+    c.setFillColor(colors.HexColor('#0F172A'))
+    c.rect(0, 0, SLIDE_W, SLIDE_H, fill=1, stroke=0)
+
+    c.setFillColor(colors.HexColor('#10B981'))
+    c.roundRect(60, SLIDE_H - 110, 280, 32, 6, fill=1, stroke=0)
+    c.setFillColor(colors.white)
+    c.setFont('JHB', 14)
+    c.drawCentredString(200, SLIDE_H - 90, f'大考寫作課堂精準診斷')
+
+    c.setFont('JHB', 34)
+    c.setFillColor(colors.white)
+    c.drawString(60, SLIDE_H - 180, f'{exam_year} 學測英文作文：全班三大集體盲區')
+
+    c.setFont('JH', 16)
+    c.setFillColor(colors.HexColor('#94A3B8'))
+    c.drawString(60, SLIDE_H - 225, f'寫作主題：{exam_topic}  |  大考中心評分規準深度解密')
+
+    c.setStrokeColor(colors.HexColor('#334155'))
+    c.setLineWidth(1)
+    c.line(60, SLIDE_H - 260, SLIDE_W - 60, SLIDE_H - 260)
+
+    # 3 Highlights Preview
+    for i, (title, _, _, _) in enumerate(slide_items):
+        cx = 60 + i * 290
+        cy = 100
+        c.setFillColor(colors.HexColor('#1E293B'))
+        c.roundRect(cx, cy, 270, 120, 8, fill=1, stroke=0)
+        c.setFillColor(colors.HexColor('#38BDF8'))
+        c.setFont('GeorgiaBold', 22)
+        c.drawString(cx + 16, cy + 80, f"0{i+1}")
+        c.setFont('JHB', 12)
+        c.setFillColor(colors.white)
+        c.drawString(cx + 16, cy + 45, title.split('：')[0])
+        c.setFont('JH', 9.5)
+        c.setFillColor(colors.HexColor('#94A3B8'))
+        c.drawString(cx + 16, cy + 22, title.split('：')[1])
+
+    c.showPage()
+
+    # Slides 2-4: The 3 Blind Spots
+    for idx, (title, wrong_s, right_s, rule_s) in enumerate(slide_items, 1):
+        c.setFillColor(colors.HexColor('#0F172A'))
+        c.rect(0, 0, SLIDE_W, SLIDE_H, fill=1, stroke=0)
+
+        # Header Pill
+        c.setFillColor(colors.HexColor('#EF4444'))
+        c.roundRect(60, SLIDE_H - 70, 160, 28, 4, fill=1, stroke=0)
+        c.setFillColor(colors.white)
+        c.setFont('JHB', 12)
+        c.drawCentredString(140, SLIDE_H - 52, f"集體盲區 0{idx}")
+
+        c.setFont('JHB', 22)
+        c.setFillColor(colors.white)
+        c.drawString(240, SLIDE_H - 52, title)
+
+        # Bento Card Left: Original Buggy Sentence
+        c.setFillColor(colors.HexColor('#1E293B'))
+        c.roundRect(60, 170, 400, 260, 10, fill=1, stroke=0)
+        c.setStrokeColor(colors.HexColor('#EF4444'))
+        c.setLineWidth(1.5)
+        c.roundRect(60, 170, 400, 260, 10, fill=0, stroke=1)
+
+        c.setFillColor(colors.HexColor('#EF4444'))
+        c.setFont('JHB', 13)
+        c.drawString(85, 395, '❌  全班典型常犯原句 (Original Trap)')
+        c.setFont('GeorgiaBold', 15)
+        c.setFillColor(colors.HexColor('#FCA5A5'))
+        p_wrong = Paragraph(f'"{wrong_s}"', ParagraphStyle('SlW', fontName='GeorgiaBold', fontSize=14, leading=20, textColor=colors.HexColor('#FCA5A5')))
+        p_wrong.wrapOn(c, 350, 160)
+        p_wrong.drawOn(c, 85, 270)
+
+        # Bento Card Right: Revision
+        c.setFillColor(colors.HexColor('#1E293B'))
+        c.roundRect(500, 170, 400, 260, 10, fill=1, stroke=0)
+        c.setStrokeColor(colors.HexColor('#10B981'))
+        c.setLineWidth(1.5)
+        c.roundRect(500, 170, 400, 260, 10, fill=0, stroke=1)
+
+        c.setFillColor(colors.HexColor('#10B981'))
+        c.setFont('JHB', 13)
+        c.drawString(525, 395, '✨  地道高分精修句 (The Writing Edit)')
+        p_right = Paragraph(f'"{right_s}"', ParagraphStyle('SlR', fontName='GeorgiaBold', fontSize=14, leading=20, textColor=colors.HexColor('#6EE7B7')))
+        p_right.wrapOn(c, 350, 160)
+        p_right.drawOn(c, 525, 270)
+
+        # Bottom Master Rule Card
+        c.setFillColor(colors.HexColor('#1E293B'))
+        c.roundRect(60, 50, 840, 95, 8, fill=1, stroke=0)
+        c.setStrokeColor(colors.HexColor('#38BDF8'))
+        c.setLineWidth(1.2)
+        c.roundRect(60, 50, 840, 95, 8, fill=0, stroke=1)
+
+        c.setFillColor(colors.HexColor('#38BDF8'))
+        c.setFont('JHB', 13)
+        c.drawString(85, 115, '💡  大考閱卷心法與黃金解題鐵律：')
+        p_rule = Paragraph(rule_s, ParagraphStyle('SlRule', fontName='JH', fontSize=12, leading=17, textColor=colors.HexColor('#E2E8F0')))
+        p_rule.wrapOn(c, 790, 60)
+        p_rule.drawOn(c, 85, 68)
+
+        c.showPage()
+
+    c.save()
+    print(f"Slides PDF rendered: {out_pdf_path.name}")
+
+    # Generate HTML Slides
+    html_content = f"""<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>110 學測英文作文：全班三大集體盲區剖析簡報</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-<style>
-body { font-family: 'Noto Serif TC', serif; background-color: #0B132B; color: #F8FAFC; }
-.slide { display: none; min-height: 100vh; }
-.slide.active { display: flex; }
-.eng-font { font-family: 'Playfair Display', serif; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{exam_year} 學測英文作文：全班三大集體盲區課堂簡報</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {{ background-color: #0b1120; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }}
+        .slide-card {{ transition: transform 0.2s ease, box-shadow 0.2s ease; }}
+        .slide-card:hover {{ transform: translateY(-4px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.5); }}
+    </style>
 </head>
-<body class="flex flex-col justify-between p-6 md:p-12">
+<body class="p-6 md:p-12 max-w-6xl mx-auto">
+    <header class="mb-12 border-b border-slate-800 pb-8">
+        <div class="inline-block bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-md text-sm mb-3">大考寫作課堂精準診斷</div>
+        <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-3">{exam_year} 學測英文作文：全班三大集體盲區</h1>
+        <p class="text-slate-400 text-lg">寫作主題：{exam_topic} | 大考中心 108 課綱評分規準深度解密</p>
+    </header>
 
-<!-- Slide 1: Cover -->
-<section id="slide-1" class="slide active flex-col justify-center items-center text-center">
-  <div class="max-w-4xl mx-auto space-y-6">
-    <div class="inline-block px-4 py-1.5 bg-emerald-600/30 text-emerald-400 border border-emerald-500/50 rounded-full text-sm font-semibold tracking-wider uppercase">The Writing Edit · Classroom Diagnostic Suite</div>
-    <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight">110 學測英文作文<br><span class="text-emerald-400">全班三大集體盲區深度剖析</span></h1>
-    <p class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">從學生真實手寫原稿出發，突破「破句、形似字、空泛敘述」三大常見痛點</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 text-left">
-      <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
-        <span class="text-xs text-sky-400 font-bold uppercase tracking-wider">盲區 1：語法破句</span>
-        <h4 class="text-lg font-bold text-white mt-1">Because 獨立成句</h4>
-        <p class="text-xs text-slate-400 mt-2">破句 (Sentence Fragment) 大考閱卷每出現一次重扣 1 分</p>
-      </div>
-      <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
-        <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">盲區 2：字彙混淆</span>
-        <h4 class="text-lg font-bold text-white mt-1">sigh 與中式直譯</h4>
-        <p class="text-xs text-slate-400 mt-2">sigh (嘆氣) vs. sign (告示牌)；public manners 缺乏道地語感</p>
-      </div>
-      <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
-        <span class="text-xs text-rose-400 font-bold uppercase tracking-wider">盲區 3：細節空泛</span>
-        <h4 class="text-lg font-bold text-white mt-1">第一段缺乏感官實景</h4>
-        <p class="text-xs text-slate-400 mt-2">40 字草草帶過現場畫面，缺乏 Show, Don't Tell 鏡頭感</p>
-      </div>
-    </div>
-  </div>
-</section>
+    <main class="space-y-12">
+"""
+    for idx, (title, wrong_s, right_s, rule_s) in enumerate(slide_items, 1):
+        html_content += f"""
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 slide-card">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="bg-rose-600 text-white font-bold px-3 py-1 rounded-lg text-sm">集體盲區 0{idx}</span>
+                <h2 class="text-xl md:text-2xl font-bold text-white">{title}</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-950 border border-rose-500/40 rounded-xl p-5">
+                    <div class="text-rose-400 font-bold text-sm mb-2 flex items-center">
+                        <span class="mr-2">❌</span> 全班典型常犯原句 (Original Trap)
+                    </div>
+                    <p class="font-serif italic text-rose-200 text-lg">"{wrong_s}"</p>
+                </div>
+                
+                <div class="bg-slate-950 border border-emerald-500/40 rounded-xl p-5">
+                    <div class="text-emerald-400 font-bold text-sm mb-2 flex items-center">
+                        <span class="mr-2">✨</span> 地道高分精修句 (The Writing Edit)
+                    </div>
+                    <p class="font-serif italic text-emerald-200 text-lg font-semibold">"{right_s}"</p>
+                </div>
+            </div>
 
-<!-- Slide 2: Blind Spot 1 -->
-<section id="slide-2" class="slide flex-col justify-center items-center">
-  <div class="max-w-5xl w-full mx-auto space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-      <span class="px-3 py-1 bg-rose-900/60 text-rose-300 text-sm font-bold rounded">盲區 1 · 文法致命傷</span>
-      <span class="text-slate-400 text-sm">SLIDE 02 / 05</span>
-    </div>
-    <h2 class="text-3xl font-bold text-white">從屬連接詞 Because 獨立成句（破句）</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-      <div class="bg-rose-950/40 border border-rose-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-rose-400 font-bold text-lg">❌ 學生原稿真實破綻</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-rose-500 font-serif text-lg text-rose-200">
-          "...making space owners angry.<br><b class="text-rose-400">Because this place means a lot to me.</b>"
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【盲區診斷】：</p>
-          <p>1. Because 為從屬連接詞，無法單獨支撐句子。</p>
-          <p>2. 犯下「破句 (Sentence Fragment)」大忌。</p>
-          <p>3. 大考閱卷直接扣減文法分 1~2 分。</p>
-        </div>
-      </div>
-      <div class="bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-emerald-400 font-bold text-lg">✅ 高分精修策略</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-emerald-500 font-serif text-lg text-emerald-200">
-          "...making space owners angry,<br><b class="text-emerald-400">as this place means a lot to me.</b>"
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【精修對策】：</p>
-          <p>解法 A：以逗號串接，改為完整複合句。</p>
-          <p>解法 B：獨立成句時改用「This is because...」。</p>
-          <p>解法 C：改用「Therefore,」或「As a result,」。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+            <div class="bg-slate-800/60 border border-sky-500/30 rounded-xl p-4 md:p-5">
+                <div class="text-sky-400 font-bold text-sm mb-1 flex items-center">
+                    <span class="mr-2">💡</span> 大考閱卷心法與黃金解題鐵律
+                </div>
+                <p class="text-slate-300 text-base leading-relaxed">{rule_s}</p>
+            </div>
+        </section>
+"""
 
-<!-- Slide 3: Blind Spot 2 -->
-<section id="slide-3" class="slide flex-col justify-center items-center">
-  <div class="max-w-5xl w-full mx-auto space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-      <span class="px-3 py-1 bg-amber-900/60 text-amber-300 text-sm font-bold rounded">盲區 2 · 用詞地道度</span>
-      <span class="text-slate-400 text-sm">SLIDE 03 / 05</span>
-    </div>
-    <h2 class="text-3xl font-bold text-white">形似字混淆與中式直譯詞彙</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-      <div class="bg-rose-950/40 border border-rose-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-rose-400 font-bold text-lg">❌ 學生原稿常見地雷</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-rose-500 font-serif text-base text-rose-200 space-y-2">
-          <p>1. "...might not notice the <b class="text-rose-400 underline">sigh</b> that says..."</p>
-          <p>2. "...they have no <b class="text-rose-400 underline">public manners</b>."</p>
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【盲區診斷】：</p>
-          <p>1. sigh 是「嘆氣」，告示牌必須是 sign。</p>
-          <p>2. public manners 屬中式直譯，非母語搭配詞。</p>
-          <p>3. 連續出現會讓閱卷老師判定詞彙匱乏。</p>
-        </div>
-      </div>
-      <div class="bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-emerald-400 font-bold text-lg">✅ 母語級地道升級</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-emerald-500 font-serif text-base text-emerald-200 space-y-2">
-          <p>1. "...ignored the <b class="text-emerald-400">warning sign reading</b>..."</p>
-          <p>2. "...exhibited no <b class="text-emerald-400">civic decency / etiquette</b>."</p>
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【精修對策】：</p>
-          <p>升級 1：告示牌 + 分詞 reading（道地美式用法）。</p>
-          <p>升級 2：公德心 ➔ civic decency 或 good manners。</p>
-          <p>升級 3：動詞升級：notice ➔ ignore / overlook。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+    html_content += """
+    </main>
 
-<!-- Slide 4: Blind Spot 3 -->
-<section id="slide-4" class="slide flex-col justify-center items-center">
-  <div class="max-w-5xl w-full mx-auto space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-      <span class="px-3 py-1 bg-sky-900/60 text-sky-300 text-sm font-bold rounded">盲區 3 · 感官鏡頭感</span>
-      <span class="text-slate-400 text-sm">SLIDE 04 / 05</span>
-    </div>
-    <h2 class="text-3xl font-bold text-white">第一段細節空泛，缺乏畫面感</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-      <div class="bg-rose-950/40 border border-rose-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-rose-400 font-bold text-lg">❌ 乾癟敘事（僅 40 字）</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-rose-500 font-serif text-base text-rose-200">
-          "In the picture, we see people in flowers. They walk into flower field and step on flowers."
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【盲區診斷】：</p>
-          <p>1. 連續重複 flowers 三次，詞彙貧乏。</p>
-          <p>2. 僅客觀陳述「走進去」，未描寫動作原因。</p>
-          <p>3. 閱卷老師無法感受現場花圃被破壞的痛心。</p>
-        </div>
-      </div>
-      <div class="bg-emerald-950/40 border border-emerald-600/40 rounded-xl p-6 space-y-4">
-        <div class="text-emerald-400 font-bold text-lg">✅ Show, Don't Tell 畫面升級</div>
-        <div class="bg-slate-900/90 p-4 rounded-lg border-l-4 border-emerald-500 font-serif text-base text-emerald-200">
-          "Eager for snapshots, tourists ruthlessly trampled delicate petals underfoot."
-        </div>
-        <div class="text-sm text-slate-300 space-y-2">
-          <p class="font-bold text-white">【精修對策】：</p>
-          <p>策略 1：補足動機（Eager for snapshots）。</p>
-          <p>策略 2：強烈動詞替換（step on ➔ trample）。</p>
-          <p>策略 3：感官受詞（flowers ➔ delicate petals）。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Slide 5: Summary -->
-<section id="slide-5" class="slide flex-col justify-center items-center">
-  <div class="max-w-5xl w-full mx-auto space-y-6">
-    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-      <span class="px-3 py-1 bg-emerald-900/60 text-emerald-300 text-sm font-bold rounded">實戰行動指南</span>
-      <span class="text-slate-400 text-sm">SLIDE 05 / 05</span>
-    </div>
-    <h2 class="text-3xl font-bold text-white">課堂總結：學測英文作文突破 15+ 分三大鐵律</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-      <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700 space-y-3">
-        <div class="text-emerald-400 font-bold text-xl">鐵律 1：語法嚴格校對</div>
-        <div class="text-sm text-slate-300 space-y-2 pt-2">
-          <p>1. 寫完務必檢查句首！嚴禁 Because/Although 獨立成句。</p>
-          <p>2. 動詞時態前後一致，特別是假設法。</p>
-          <p>3. 連接詞與逗號不混用。</p>
-        </div>
-      </div>
-      <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700 space-y-3">
-        <div class="text-emerald-400 font-bold text-xl">鐵律 2：中式直譯降噪</div>
-        <div class="text-sm text-slate-300 space-y-2 pt-2">
-          <p>1. 拋棄 public manners，用 good manners。</p>
-          <p>2. 拋棄 Because of that，用 Therefore。</p>
-          <p>3. 告示牌用 sign reading，不用 say。</p>
-        </div>
-      </div>
-      <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700 space-y-3">
-        <div class="text-emerald-400 font-bold text-xl">鐵律 3：感官畫面深耕</div>
-        <div class="text-sm text-slate-300 space-y-2 pt-2">
-          <p>1. 描摹首段實景至少 70~80 字。</p>
-          <p>2. 描寫動態動作與受害花瓣。</p>
-          <p>3. 結尾昇華公德心與同理心。</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Footer Nav -->
-<footer class="flex items-center justify-between pt-6 border-t border-slate-800 text-sm text-slate-400">
-  <div>鍵盤左右方向鍵 (← / →) 切換投影片</div>
-  <div class="space-x-2">
-    <button onclick="prevSlide()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded transition">上一頁</button>
-    <button onclick="nextSlide()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition">下一頁</button>
-  </div>
-</footer>
-
-<script>
-let currentSlide = 1;
-const totalSlides = 5;
-
-function showSlide(n) {
-  document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
-  const target = document.getElementById(`slide-${n}`);
-  if (target) target.classList.add('active');
-  currentSlide = n;
-}
-
-function nextSlide() {
-  if (currentSlide < totalSlides) showSlide(currentSlide + 1);
-}
-
-function prevSlide() {
-  if (currentSlide > 1) showSlide(currentSlide - 1);
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
-  if (e.key === 'ArrowLeft') prevSlide();
-});
-</script>
+    <footer class="mt-16 text-center text-slate-500 text-sm border-t border-slate-800 pt-8">
+        THE WRITING EDIT • 高中職英文寫作雙軌診斷系統 • 紀老師 Sylvia 教學研習專用
+    </footer>
 </body>
 </html>
 """
-    with open(out_path, 'w', encoding='utf-8') as f:
+    with open(out_html_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print(f"Saved Slides HTML: {out_path.name}")
+    print(f"Slides HTML rendered: {out_html_path.name}")
 
-# ==================== MAIN EXECUTION & ASSEMBLY ====================
+# ==================== MASTER EXECUTION ====================
 
-def main():
-    print("==================== STARTING COMPLETE MASTER V15 BUILD ====================")
+def run_all():
+    print("="*60)
+    print("STARTING MASTER OPTION A PRODUCTION RUN")
+    print("="*60)
 
-    # 1. Build Page 1 & Page 2 for All 3 Essays
-    essays = [
-        (DATA_S01, TMP / "s01_p1.pdf", TMP / "s01_p2.pdf", "Student_01"),
-        (DATA_S35, TMP / "s35_p1.pdf", TMP / "s35_p2.pdf", "Student_35"),
-        (DATA_CEEC, TMP / "ceec_p1.pdf", TMP / "ceec_p2.pdf", "大考中心佳作01")
-    ]
+    # 1. Process 111 Topic (Park Planning)
+    print("\n--- [1/2] Processing 111 Topic ---")
+    # 111 Student 01
+    p1_111_s01 = TMP / "111_s01_p1_opt_a.pdf"
+    p2_111_s01 = TMP / "111_s01_p2_opt_a.pdf"
+    render_page_1_option_a(DATA_111_S01, p1_111_s01)
+    render_page_2_option_a(DATA_111_S01, p2_111_s01)
+    combine_to_print_pdf(p1_111_s01, p2_111_s01, OUT_111 / "301班_第1篇_前兩頁雙面列印_雜誌風.pdf")
 
-    for data, p1_path, p2_path, prefix in essays:
-        render_page_1_clean(data, p1_path)
-        render_page_2_zoned(data, p2_path)
+    # 111 CEEC 01
+    p1_111_ceec = TMP / "111_ceec_p1_opt_a.pdf"
+    p2_111_ceec = TMP / "111_ceec_p2_opt_a.pdf"
+    render_page_1_option_a(DATA_111_CEEC, p1_111_ceec)
+    render_page_2_option_a(DATA_111_CEEC, p2_111_ceec)
+    combine_to_print_pdf(p1_111_ceec, p2_111_ceec, OUT_111 / "111學測英文作文_大考中心佳作01_前兩頁雙面列印_雜誌風.pdf")
 
-        # Assemble 2-page print edition
-        two_page_out = OUT_DIR / f"{prefix}_前兩頁雙面列印_雜誌風.pdf"
-        writer2 = PdfWriter()
-        r1 = PdfReader(p1_path)
-        r2 = PdfReader(p2_path)
-        writer2.add_page(r1.pages[0])
-        writer2.add_page(r2.pages[0])
-        with open(two_page_out, 'wb') as f:
-            writer2.write(f)
-        print(f"Saved 2-Page Print PDF: {two_page_out.name} ({two_page_out.stat().st_size:,} bytes)")
+    # 111 Worksheets & Slides
+    build_worksheet_option_a('111', '規劃理想新公園', False, OUT_111 / "111學測作文_大家來找碴_挑錯微講義_學用版.pdf")
+    build_worksheet_option_a('111', '規劃理想新公園', True, OUT_111 / "111學測作文_大家來找碴_挑錯微講義_教用解答版.pdf")
+    build_slides_option_a('111', '規劃理想新公園', OUT_111 / "111學測作文_全班三大集體盲區_課堂投影簡報.pdf", OUT_111 / "111學測作文_全班三大集體盲區_課堂投影簡報.html")
 
-        # Assemble complete 7-page The Writing Edit magazine edition
-        full_mag_out = OUT_DIR / f"{prefix}_雜誌風手寫批改_The_Writing_Edit.pdf"
-        det_pdf = TMP / "tmp_mag_v3" / "details.pdf"
-        writer7 = PdfWriter()
-        writer7.add_page(r1.pages[0])
-        writer7.add_page(r2.pages[0])
-        if det_pdf.exists():
-            r_det = PdfReader(det_pdf)
-            for page in r_det.pages:
-                writer7.add_page(page)
-        with open(full_mag_out, 'wb') as f:
-            writer7.write(f)
-        print(f"Saved 7-Page Magazine PDF: {full_mag_out.name} ({full_mag_out.stat().st_size:,} bytes)")
+    # 2. Process 110 Topic (Flower Garden Intrusion)
+    print("\n--- [2/2] Processing 110 Topic ---")
+    # 110 Student 01
+    p1_110_s01 = TMP / "110_s01_p1_opt_a.pdf"
+    p2_110_s01 = TMP / "110_s01_p2_opt_a.pdf"
+    render_page_1_option_a(DATA_110_S01, p1_110_s01)
+    render_page_2_option_a(DATA_110_S01, p2_110_s01)
+    combine_to_print_pdf(p1_110_s01, p2_110_s01, OUT_110 / "Student_01_前兩頁雙面列印_雜誌風.pdf")
 
-    # 2. Build 1-Page Spot-the-Error Worksheets
-    print("\n--- Building 1-Page Spot-the-Error Worksheets ---")
-    ws_stud_pdf = OUT_DIR / "110學測作文_大家來找碴_挑錯微講義_學用版.pdf"
-    ws_teach_pdf = OUT_DIR / "110學測作文_大家來找碴_挑錯微講義_教用解答版.pdf"
-    render_worksheet_master(is_teacher=False, out_path=ws_stud_pdf)
-    render_worksheet_master(is_teacher=True, out_path=ws_teach_pdf)
+    # 110 Student 35
+    p1_110_s35 = TMP / "110_s35_p1_opt_a.pdf"
+    p2_110_s35 = TMP / "110_s35_p2_opt_a.pdf"
+    render_page_1_option_a(DATA_110_S35, p1_110_s35)
+    render_page_2_option_a(DATA_110_S35, p2_110_s35)
+    combine_to_print_pdf(p1_110_s35, p2_110_s35, OUT_110 / "Student_35_前兩頁雙面列印_雜誌風.pdf")
 
-    # 3. Build 16:9 Slides (PDF & HTML)
-    print("\n--- Building 16:9 Classroom Slides ---")
-    slides_pdf = OUT_DIR / "110學測作文_全班三大集體盲區_課堂投影簡報.pdf"
-    slides_html = OUT_DIR / "110學測作文_全班三大集體盲區_課堂投影簡報.html"
-    render_slides_master(slides_pdf)
-    render_slides_html(slides_html)
+    # 110 CEEC 01
+    p1_110_ceec = TMP / "110_ceec_p1_opt_a.pdf"
+    p2_110_ceec = TMP / "110_ceec_p2_opt_a.pdf"
+    render_page_1_option_a(DATA_110_CEEC, p1_110_ceec)
+    render_page_2_option_a(DATA_110_CEEC, p2_110_ceec)
+    combine_to_print_pdf(p1_110_ceec, p2_110_ceec, OUT_110 / "大考中心佳作01_前兩頁雙面列印_雜誌風.pdf")
 
-    print("\n==================== ALL 10 DELIVERABLES SUCCESSFULLY PRODUCED! ====================")
+    # 110 Worksheets & Slides
+    build_worksheet_option_a('110', '花圃踩踏情境題', False, OUT_110 / "110學測作文_大家來找碴_挑錯微講義_學用版.pdf")
+    build_worksheet_option_a('110', '花圃踩踏情境題', True, OUT_110 / "110學測作文_大家來找碴_挑錯微講義_教用解答版.pdf")
+    build_slides_option_a('110', '花圃踩踏情境題', OUT_110 / "110學測作文_全班三大集體盲區_課堂投影簡報.pdf", OUT_110 / "110學測作文_全班三大集體盲區_課堂投影簡報.html")
+
+    print("\n" + "="*60)
+    print("ALL PRODUCTION RUNS SUCCESSFULLY COMPLETED!")
+    print("="*60)
 
 if __name__ == '__main__':
-    main()
+    run_all()
