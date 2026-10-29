@@ -299,9 +299,11 @@ def front(path, data, s, base):
                 gray = img.convert('L')
                 bg = gray.filter(ImageFilter.BoxBlur(25))
                 diff = ImageMath.eval('convert(min(255, max(0, (float(a) / (float(b) + 0.001)) * 255)), "L")', a=gray, b=bg)
-                lut = [255 if i > 200 else int((i / 200) * 255) for i in range(256)]
-                gray_clean = diff.point(lut)
-                img = Image.merge('RGB', (gray_clean, gray_clean, gray_clean))
+                lut = [255 if i > 195 else int(((i / 195.0) ** 1.35) * 210) for i in range(256)]
+                darkened = diff.point(lut)
+                thickened = darkened.filter(ImageFilter.MinFilter(3))
+                blended = Image.blend(darkened, thickened, 0.65)
+                img = Image.merge('RGB', (blended, blended, blended))
             clean_path = scan_file.parent / f'_conditioned_{scan_file.name}'
             img.save(clean_path)
             scan_file = clean_path
