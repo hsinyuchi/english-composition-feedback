@@ -1,0 +1,450 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sylvia Essay v13 single-student magazine input",
+  "type": "object",
+  "required": [
+    "id",
+    "class",
+    "seat",
+    "topic",
+    "paragraphs",
+    "sentences",
+    "scores",
+    "total",
+    "tier",
+    "tasks",
+    "feedback_zh",
+    "feedback_en",
+    "basic",
+    "enhanced",
+    "worksheet",
+    "slide_indices",
+    "actions",
+    "learning_summary",
+    "rubric"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tier": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feedback_zh": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feedback_en": {
+      "type": "string",
+      "minLength": 1
+    },
+    "learning_summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "uncertainty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "first_page_pdf": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scan": {
+      "type": "string",
+      "minLength": 1
+    },
+    "short_zh": {
+      "type": "string",
+      "minLength": 1
+    },
+    "short_en": {
+      "type": "string",
+      "minLength": 1
+    },
+    "slide_title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seat": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "deduction": {
+      "type": "number",
+      "minimum": 0
+    },
+    "self_count": {
+      "type": "number",
+      "minimum": 0
+    },
+    "paragraphs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "sentences": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "original",
+          "corrected",
+          "analysis",
+          "optional"
+        ],
+        "properties": {
+          "original": {
+            "type": "string",
+            "minLength": 1
+          },
+          "corrected": {
+            "type": "string",
+            "minLength": 1
+          },
+          "analysis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "optional": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scores": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "value",
+          "brief",
+          "reason",
+          "strategy"
+        ],
+        "properties": {
+          "label": {
+            "enum": [
+              "內容",
+              "組織",
+              "文法句構",
+              "字彙拼字"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "brief": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strategy": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "basic": {
+      "type": "object",
+      "required": [
+        "en",
+        "zh"
+      ],
+      "properties": {
+        "en": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "zh": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "enhanced": {
+      "type": "object",
+      "required": [
+        "en",
+        "zh"
+      ],
+      "properties": {
+        "en": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "zh": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "worksheet": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "original",
+          "corrected",
+          "analysis",
+          "rule",
+          "source_sentence_ids",
+          "source_mode"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original": {
+            "type": "string",
+            "minLength": 1
+          },
+          "corrected": {
+            "type": "string",
+            "minLength": 1
+          },
+          "analysis": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_sentence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "source_mode": {
+            "enum": [
+              "verbatim",
+              "excerpt",
+              "adapted",
+              "word_list"
+            ]
+          }
+        }
+      }
+    },
+    "slide_indices": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "steps"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "steps": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "rubric": {
+      "type": "object",
+      "required": [
+        "title",
+        "url",
+        "checked"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checked": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "text",
+          "x1",
+          "x2",
+          "y",
+          "text_x",
+          "text_y"
+        ],
+        "properties": {
+          "x1": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "x2": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "text_x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "text_y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "label": {
+            "enum": [
+              "[Sp]",
+              "[G]",
+              "[P]",
+              "[W]",
+              "[+]",
+              "[x]"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "replace",
+              "delete",
+              "insert"
+            ]
+          }
+        }
+      }
+    },
+    "first_page_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "first_page_transcription_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "scan_line_count": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "first_page_pdf",
+        "first_page_sha256",
+        "first_page_transcription_sha256"
+      ]
+    },
+    {
+      "required": [
+        "scan",
+        "short_zh",
+        "short_en",
+        "scan_line_count"
+      ],
+      "not": {
+        "required": [
+          "first_page_pdf"
+        ]
+      }
+    }
+  ]
+}

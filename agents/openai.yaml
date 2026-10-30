@@ -1,4 +1,4 @@
 interface:
-  display_name: "高中英文作文精批與修訂"
-  short_description: "精準紅筆、直式三任務、空心星星反思、雙語精修與班級彙整"
-  default_prompt: "請使用 $sylvia-essay，依最新大考中心學測英文作文規準先完成一位學生的樣本，保留原稿並產生完整精修PDF與前兩頁列印版。沿用上方評分評語、下方三個直式個別任務與獨立星星反思的固定模板。"
+  display_name: "sylvia-essay"
+  short_description: "核准首頁紅筆、雜誌式反思與逐句卡片、雙軌挑錯講義及深色簡報"
+  default_prompt: "請使用 $sylvia-essay，先核對指定學生原稿，保留已核准首頁的Helvetica-Bold紅字及黑膠囊。以scripts/render_magazine.py產生雜誌式第二頁、評量總表、逐句四列卡片、雙語範文與個人行動指南，並完整產生學用／教用講義及PDF／HTML投影簡報。只處理指定學生，另存新版本並逐頁驗收。"

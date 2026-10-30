@@ -1,0 +1,22 @@
+// Runs the emitted navigation code against a minimal DOM model; this is not browser visual QA.
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const file=process.argv[2];if(!file)throw Error('Pass the generated HTML path');
+const html=fs.readFileSync(file,'utf8');
+assert.equal((html.match(/<section class="slide/g)||[]).length,5);
+assert(!/https?:\/\//.test(html),'HTML must be usable without network/CDN dependencies');
+const code=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]).join('\n');
+const slides=Array.from({length:5},()=>({active:false,classList:{toggle(name,on){this.owner.active=on}}}));
+slides.forEach(x=>x.classList.owner=x);
+const els={prev:{},next:{},counter:{},full:{}};let keydown;
+const doc={querySelectorAll:()=>slides,getElementById:id=>els[id],addEventListener:(event,fn)=>{if(event==='keydown')keydown=fn},documentElement:{requestFullscreen(){}}};
+vm.runInNewContext(code,{document:doc});
+assert.equal(els.counter.textContent,'1 / 5');assert(els.prev.disabled);
+for(let i=0;i<8;i++)els.next.onclick();
+assert.equal(els.counter.textContent,'5 / 5');assert(els.next.disabled);
+for(let i=0;i<8;i++)els.prev.onclick();
+assert.equal(els.counter.textContent,'1 / 5');
+keydown({key:'ArrowRight',preventDefault(){}});assert.equal(els.counter.textContent,'2 / 5');
+keydown({key:' ',preventDefault(){}});assert.equal(els.counter.textContent,'3 / 5');
+keydown({key:'ArrowLeft',preventDefault(){}});assert.equal(els.counter.textContent,'2 / 5');
+assert.equal(slides.filter(x=>x.active).length,1);
+console.log('5 slides; button/key navigation; first/last bounds; single active slide; no CDN: PASS (logic-only test)');

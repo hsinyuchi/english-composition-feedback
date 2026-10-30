@@ -1,3 +1,15 @@
+# Sylvia Essay v13.0：核准首頁＋雜誌內頁（2026-10-30）
+
+唯一預設入口為 `scripts/render_magazine.py`。請讀 SKILL.md、references/layout.md 與 references/magazine-contract.md。保留核准首頁，第二頁起採深色標籤、灰底表格及逐句四列卡片；講義與深色簡報也採固定模板。
+
+新增單生JSON規格、完全虛構範例、十三項整合與安全驗證。真實學生資料不收入技能。以下保留舊版紀錄；有版型差異以v13主檔為準。
+
+測試：`python scripts/test_magazine.py`
+
+執行：`python scripts/render_magazine.py examples/magazine_demo.json --out output/demo-v13-new`
+
+---
+
 # 高中英文作文精批與修訂 v12.0 (The Writing Edit)
 
 跨 agent 批改規範 + 雙軌 PDF / Excel / PPT / HTML 輸出體系。正式 Skill 呼叫名稱為 sylvia-essay；相容 english-essay-feedback / english-composition-feedback / hsinyuchi-essay-feedback 舊稱。

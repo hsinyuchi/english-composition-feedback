@@ -1,0 +1,210 @@
+{
+  "id": "SAMPLE_01",
+  "class": "SAMPLE",
+  "seat": 1,
+  "topic": "虛構範例：理想公園",
+  "slide_title": "虛構示範：三個修訂重點",
+  "paragraphs": [
+    "Many people enjoys parks. Some parks has playgrounds. Other parks are quietly. I prefer a quiet park.",
+    "My ideal park have many trees. Children can plays there. Adults can rest under the trees. This park can help everyone relax."
+  ],
+  "sentences": [
+    {
+      "original": "Many people enjoys parks.",
+      "corrected": "Many people enjoy parks.",
+      "analysis": "複數主詞 people 搭配 enjoy。",
+      "optional": "Many people enjoy parks."
+    },
+    {
+      "original": "Some parks has playgrounds.",
+      "corrected": "Some parks have playgrounds.",
+      "analysis": "複數主詞 parks 搭配 have。",
+      "optional": "Some parks have playgrounds."
+    },
+    {
+      "original": "Other parks are quietly.",
+      "corrected": "Other parks are quiet.",
+      "analysis": "be動詞後用形容詞 quiet。",
+      "optional": "Other parks are quiet."
+    },
+    {
+      "original": "I prefer a quiet park.",
+      "corrected": "I prefer a quiet park.",
+      "analysis": "原句可保留，偏好表達清楚。",
+      "optional": "I prefer a quiet park."
+    },
+    {
+      "original": "My ideal park have many trees.",
+      "corrected": "My ideal park has many trees.",
+      "analysis": "單數主詞 park 搭配 has。",
+      "optional": "My ideal park has many trees."
+    },
+    {
+      "original": "Children can plays there.",
+      "corrected": "Children can play there.",
+      "analysis": "can後接原形動詞play。",
+      "optional": "Children can play there."
+    },
+    {
+      "original": "Adults can rest under the trees.",
+      "corrected": "Adults can rest under the trees.",
+      "analysis": "原句可保留，地點資訊清楚。",
+      "optional": "Adults can rest under the trees."
+    },
+    {
+      "original": "This park can help everyone relax.",
+      "corrected": "This park can help everyone relax.",
+      "analysis": "原句可保留，結尾表達清楚。",
+      "optional": "This park can help everyone relax."
+    }
+  ],
+  "scores": [
+    {
+      "label": "內容",
+      "value": 3,
+      "brief": "虛構示範的規準摘要。",
+      "reason": "此為測試版型的虛構資料，不代表任何學生表現。",
+      "strategy": "先修改一個句子，再說明規則。"
+    },
+    {
+      "label": "組織",
+      "value": 3,
+      "brief": "虛構示範的規準摘要。",
+      "reason": "此為測試版型的虛構資料，不代表任何學生表現。",
+      "strategy": "先修改一個句子，再說明規則。"
+    },
+    {
+      "label": "文法句構",
+      "value": 3,
+      "brief": "虛構示範的規準摘要。",
+      "reason": "此為測試版型的虛構資料，不代表任何學生表現。",
+      "strategy": "先修改一個句子，再說明規則。"
+    },
+    {
+      "label": "字彙拼字",
+      "value": 3,
+      "brief": "虛構示範的規準摘要。",
+      "reason": "此為測試版型的虛構資料，不代表任何學生表現。",
+      "strategy": "先修改一個句子，再說明規則。"
+    }
+  ],
+  "total": 12,
+  "tier": "虛構教學估分",
+  "deduction": 0,
+  "tasks": [
+    "修正 Many people enjoys parks.",
+    "修正 Other parks are quietly.",
+    "修正 Children can plays there."
+  ],
+  "feedback_zh": "這是完全虛構的版型測試資料，請先修正主動詞一致與詞性。",
+  "feedback_en": "This is fictional sample data. Check verbs and word forms.",
+  "short_zh": "虛構示範，先核對主詞和動詞。",
+  "short_en": "Fictional sample. Check subjects and verbs.",
+  "scan": "magazine_demo.png",
+  "annotations": [],
+  "basic": {
+    "en": [
+      "Many people enjoy parks. Some parks have playgrounds. Other parks are quiet. I prefer a quiet park.",
+      "My ideal park has many trees. Children can play there. Adults can rest under the trees. This park can help everyone relax."
+    ],
+    "zh": [
+      "許多人喜歡公園。有些公園有遊樂場，另一些很安靜。我偏好安靜的公園。",
+      "我的理想公園有許多樹。孩子可以玩耍，大人可以在樹下休息，這座公園能讓大家放鬆。"
+    ]
+  },
+  "enhanced": {
+    "en": [
+      "Parks offer different ways to relax. Some have playgrounds, while others provide a quiet setting. I prefer a peaceful park.",
+      "My ideal park would have plenty of trees. Children could play while adults rested in the shade. It would be a welcoming place for everyone."
+    ],
+    "zh": [
+      "公園提供不同的放鬆方式。有些有遊樂場，另一些有安靜的環境。我偏好寧靜的公園。",
+      "我的理想公園會有許多樹。孩子玩耍時，大人可以在樹蔭下休息。這會是歡迎大家的地方。"
+    ],
+    "note": "可選示範，不是原稿。"
+  },
+  "worksheet": [
+    {
+      "title": "主動詞一致",
+      "original": "Many people enjoys parks.",
+      "corrected": "Many people enjoy parks.",
+      "analysis": "複數主詞 people 搭配 enjoy。",
+      "rule": "複數主詞 people 搭配 enjoy。",
+      "source_sentence_ids": [
+        1
+      ],
+      "source_mode": "verbatim"
+    },
+    {
+      "title": "複數主詞",
+      "original": "Some parks has playgrounds.",
+      "corrected": "Some parks have playgrounds.",
+      "analysis": "複數主詞 parks 搭配 have。",
+      "rule": "複數主詞 parks 搭配 have。",
+      "source_sentence_ids": [
+        2
+      ],
+      "source_mode": "verbatim"
+    },
+    {
+      "title": "形容詞位置",
+      "original": "Other parks are quietly.",
+      "corrected": "Other parks are quiet.",
+      "analysis": "be動詞後用形容詞 quiet。",
+      "rule": "be動詞後用形容詞 quiet。",
+      "source_sentence_ids": [
+        3
+      ],
+      "source_mode": "verbatim"
+    },
+    {
+      "title": "單數主詞",
+      "original": "My ideal park have many trees.",
+      "corrected": "My ideal park has many trees.",
+      "analysis": "單數主詞 park 搭配 has。",
+      "rule": "單數主詞 park 搭配 has。",
+      "source_sentence_ids": [
+        5
+      ],
+      "source_mode": "verbatim"
+    },
+    {
+      "title": "助動詞後原形",
+      "original": "Children can plays there.",
+      "corrected": "Children can play there.",
+      "analysis": "can後接原形動詞play。",
+      "rule": "can後接原形動詞play。",
+      "source_sentence_ids": [
+        6
+      ],
+      "source_mode": "verbatim"
+    }
+  ],
+  "slide_indices": [
+    0,
+    2,
+    4
+  ],
+  "actions": [
+    {
+      "title": "主動詞一致",
+      "steps": "1. 圈出原句問題。\n2. 寫出訂正句。\n3. 讀出修改理由。"
+    },
+    {
+      "title": "形容詞用法",
+      "steps": "1. 圈出原句問題。\n2. 寫出訂正句。\n3. 讀出修改理由。"
+    },
+    {
+      "title": "助動詞句型",
+      "steps": "1. 圈出原句問題。\n2. 寫出訂正句。\n3. 讀出修改理由。"
+    }
+  ],
+  "learning_summary": "虛構資料：檢查基本句型與詞性。",
+  "uncertainty": "完全虛構範例；圖片為打字排版的測試圖，非學生手寫稿。",
+  "rubric": {
+    "title": "大考中心115學測英文評分原則（範例資料；正式批改須重新查核）",
+    "checked": "2026-10-30",
+    "url": "https://www.ceec.edu.tw/xcepaper/cont?sid=0Q111569514236767793"
+  },
+  "scan_line_count": 8
+}
